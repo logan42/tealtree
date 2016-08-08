@@ -17,8 +17,9 @@
 #include <boost/log/sinks/text_ostream_backend.hpp>
 #include <boost/log/sources/logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
-#include <thread>
+#include <gheap.hpp>
 #include <random>
+#include <thread>
 
 class InMemoryBucketsProvider : public BucketsProvider
 {
@@ -350,7 +351,9 @@ void Workflow::set_base_score()
 void Workflow::train_a_tree(uint32_t tree_index)
 {
     assert(this->trainer != NULL);
-    assert(this->splits_heap.empty());
+    typedef gheap<> gh;
+    CompareSplits compare;
+    std::vector<Split*> heap;
     TIMER_START(t);
     uint32_t n_tree_nodes = 2 * options.n_leaves - 1;
     float_t step_alpha = options.step_alpha;
@@ -363,22 +366,24 @@ void Workflow::train_a_tree(uint32_t tree_index)
     TreeNode * root = data->current_tree->get_root();
     this->trainer->compute_histograms(root, nullptr, nullptr);
     if (root->split->spread > 0) {
-        this->splits_heap.push(root->split.get());
+        heap.push_back(root->split.get());
+        gh::push_heap(heap.begin(), heap.end(), compare);
     }
     else {
         BOOST_LOG_TRIVIAL(warning) << "Warning: cannot split root in this tree. This might indicate overfitting.";
 
     }
     while (data->current_tree->get_nodes().size() < n_tree_nodes) {
-        if (this->splits_heap.empty()) {
+        if (heap.empty()) {
             if (!this->msg_tree_too_short) {
                 this->msg_tree_too_short = true;
                 BOOST_LOG_TRIVIAL(warning) << "Terminating tree before max leaves reached.";
             }
             break;
         }
-        Split * best_split = const_cast<Split *>(this->splits_heap.top());
-        this->splits_heap.pop();
+        Split * best_split = heap[0];
+        gh::pop_heap(heap.begin(), heap.end(), compare);
+        heap.pop_back();
         std::unique_ptr<SplitSignature> signature = this->trainer->get_split_signature(best_split);
         BOOST_LOG_TRIVIAL(trace) << "Node #" << best_split->node->node_id << " has " << best_split->node->doc_ids.size() << " docs, splitting by feature " << best_split->feature->get_name() << " inverse=" << best_split->inverse << " bucket=" << best_split->threshold;
 
@@ -398,10 +403,12 @@ void Workflow::train_a_tree(uint32_t tree_index)
         if (compute_children_histograms) {
         this->trainer->compute_histograms(children.second, children.first, std::move(signature));
         if (children.first->split->spread > 0) {
-                this->splits_heap.push(children.first->split.get());
+                heap.push_back(children.first->split.get());
+                gh::push_heap(heap.begin(), heap.end(), compare);
         }
         if (children.second->split->spread > 0) {
-                this->splits_heap.push(children.second->split.get());
+            heap.push_back(children.second->split.get());
+            gh::push_heap(heap.begin(), heap.end(), compare);
         }
         }
 
@@ -410,11 +417,9 @@ void Workflow::train_a_tree(uint32_t tree_index)
     this->trainer->finalize_tree(step_alpha);
     TreeLite tree(*data->current_tree, this->buckets_provider.get());
     this->trainer->clear_tree();
-    this->splits_heap.clear();
     
     BOOST_LOG_TRIVIAL(info) << "Tree #" << tree_index << " trained in " << format_float(TIMER_FINISH(t), 3) << " seconds.";
     
-    // TODO: Make writing tree asynchronous in a separate thread.
     this->tree_writer->add_tree(tree);
 
     this->check_for_overflow();

@@ -2,7 +2,6 @@
 #define __tealtree__workflow__
 
 #include <atomic>
-#include <boost/heap/d_ary_heap.hpp>
 #include <future>
 #include <random>
 #include <stdio.h>
@@ -39,9 +38,6 @@ private:
     std::unique_ptr<Trainer> trainer;
     typedef BlockingBoundedQueue <std::future<std::unique_ptr<Feature>>> FEATURE_PIPELINE_TYPE;
     typedef std::shared_ptr<FEATURE_PIPELINE_TYPE> FEATURE_PIPELINE_PTR_TYPE;
-    typedef typename boost::heap::d_ary_heap<const Split *, boost::heap::mutable_<true>, boost::heap::arity<2>, boost::heap::compare<CompareSplits>> heap_t;
-    typedef typename heap_t::handle_type handle_t;
-    heap_t splits_heap;
     std::unique_ptr<TreeWriter> tree_writer;
     std::unique_ptr<BucketsProvider> buckets_provider;
     std::unique_ptr<Ensemble> ensemble;

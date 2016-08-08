@@ -62,13 +62,24 @@ UNIVERSAL_BUCKET RawFeatureHistogramImpl<T>::get_default_bucket() const
 template <typename T>
 void RawFeatureHistogramImpl<T>::compute_histogram(const RawFeature<T> * feature)
 {
-    assert(this->hist.empty());
+    assert(this->hist_values.empty());
+    assert(this->hist_freq.empty());
     const std::vector<T> & data = *feature->get_data();
-    for (size_t i = 0; i < data.size(); i++) {
-        T value = data[i];
-        this->hist[value]++;
+    this->hist_values= data;
+    std::sort(this->hist_values.begin(), this->hist_values.end());
+    this->hist_freq.reserve(this->hist_values.size());
+    DOC_ID frequency = 1, writeback_idx = 1;
+    for (size_t i = 1; i < hist_values.size(); i++) {
+        if (hist_values[i] != hist_values[i - 1]) {
+            hist_freq.push_back(frequency);
+            frequency = 0;
+            hist_values[writeback_idx++] = hist_values[i];
+        }
+        frequency++;
     }
- 
+    hist_freq.push_back(frequency);
+    hist_values.resize(writeback_idx);
+    assert(hist_values.size() == hist_freq.size());
 }
 
 template <typename T>
@@ -76,7 +87,7 @@ void RawFeatureHistogramImpl<T>::compute_buckets(uint32_t max_buckets)
 {
     assert(this->bucket_min.empty());
     assert(this->bucket_max.empty());
-    size_t unique_values = this->hist.size();
+    size_t unique_values = this->hist_values.size();
     if (unique_values < 1) {
         throw std::runtime_error(std::string("Cannot bucketize feature with no values"));
     }
@@ -84,12 +95,11 @@ void RawFeatureHistogramImpl<T>::compute_buckets(uint32_t max_buckets)
         // easy case: every value gets its own bucket
         this->bucket_min.resize(unique_values);
         this->bucket_max.resize(unique_values);
-        size_t i=0;
         DOC_ID highest_frequency = 0;
         DOC_ID n_docs = 0;
-        for (auto it = this->hist.begin(); it != this->hist.end(); it++,i++) {
-            bucket_min[i] = bucket_max[i] = it->first;
-            DOC_ID frequency = it->second;
+        for (size_t i = 0; i < this->hist_values.size(); i++) {
+            bucket_min[i] = bucket_max[i] = this->hist_values[i];
+            DOC_ID frequency = this->hist_freq[i];
             n_docs += frequency;
             if (frequency > highest_frequency) {
                 highest_frequency = frequency;
@@ -110,40 +120,39 @@ void RawFeatureHistogramImpl<T>::compute_buckets(uint32_t max_buckets)
 template <typename T>
 void RawFeatureHistogramImpl<T>::compute_buckets_fast(uint32_t max_buckets)
 {
-    size_t unique_values = this->hist.size();
+    size_t unique_values = this->hist_values.size();
     assert(max_buckets > 0);
     assert(unique_values > max_buckets);
     bucket_min.resize(max_buckets);
     bucket_max.resize(max_buckets);
     DOC_ID n_docs = 0;
     DOC_ID highest_frequency = 0;
-    auto it = this->hist.begin();
     size_t counter = 0;
-    size_t i = 0;
+    size_t i = 0, h = 0;
     for (uint32_t bucket = 0; bucket < max_buckets; bucket++) {
         size_t di = (unique_values - counter + (max_buckets - 1)) / max_buckets;
-        bucket_min[bucket] = it->first;
-        DOC_ID frequency = it->second;
+        bucket_min[bucket] = hist_values[h];
+        DOC_ID frequency = hist_freq[h];
         for (size_t j = 1; j < di; j++) {
-            it++;
-            assert(it != this->hist.end());
-            frequency += it->second;
+            h++;
+            assert(h < this->hist_values.size());
+            frequency += hist_freq[h];
         }
-        bucket_max[bucket] = it->first;
+        bucket_max[bucket] = hist_values[h];
         n_docs += frequency;
         if (frequency > highest_frequency) {
             highest_frequency = frequency;
             this->default_bucket = bucket;
         }
 
-        it++;
+        h++;
         i += di;
         counter += max_buckets * di;
         assert(counter / unique_values == 1);
         counter %= unique_values;
     }
     assert(i == unique_values);
-    assert(it == this->hist.end());
+    assert(h == this->hist_values.size());
     this->sparsity = (float_t)(1.0 - 1.0 * highest_frequency / n_docs);
 }
 
@@ -152,14 +161,13 @@ void RawFeatureHistogramImpl<T>::compute_buckets_hard(uint32_t max_buckets)
 {
     typedef gheap<> gh;
     CompareValuesRanges<T> comparator;
-    size_t unique_values = this->hist.size();
+    size_t unique_values = this->hist_values.size();
     std::vector<ValuesRange<T>> ranges;
     ranges.reserve(unique_values);
     std::vector<ValuesRange<T> *>heap;
     heap.reserve(unique_values - 1);
-    size_t i = 0;
-    for (auto it = this->hist.begin(); it != this->hist.end(); it++,i++) {
-        ranges.push_back(ValuesRange<T>(it->first, it->second));
+    for (size_t i = 0; i < this->hist_values.size(); i++) {
+        ranges.push_back(ValuesRange<T>(hist_values[i], hist_freq[i]));
         if (i > 0) {
             ranges[i-1].next_range = &ranges[i];
             ranges[i].prev_range = &ranges[i-1];

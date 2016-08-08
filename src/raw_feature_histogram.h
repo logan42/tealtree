@@ -38,10 +38,11 @@ template <typename T>
 class RawFeatureHistogramImpl : public RawFeatureHistogram
 {
 private:
-    std::map<T, DOC_ID> hist;
+    std::vector<T> hist_values;
+        std::vector<DOC_ID> hist_freq;
     std::vector<T> bucket_min, bucket_max;
     std::unique_ptr<std::vector<UNIVERSAL_BUCKET>> universal_data;
-    float_t sparsity;
+    float_t sparsity; 
     UNIVERSAL_BUCKET default_bucket;
 public:
     RawFeatureHistogramImpl();

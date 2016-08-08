@@ -35,7 +35,7 @@ inline bool tt_is_digit(char c)
 }
 
 template<typename T>
-struct NumberParsingContainer { typedef uint64_t type; };
+struct NumberParsingContainer { typedef T type; };
 template<>
 struct NumberParsingContainer<uint8_t> { typedef uint64_t type; };
 template<>
@@ -81,10 +81,10 @@ inline T parse_string(const char * str)
         // There must be some wrong characters in the string.
         throw number_format_error("parse_string");
     }
-        if (negative) {
-        result = -result;
+        if (std::is_signed<T>() && negative) {
+        result = 0 - result;
     }
-    T tresult = result;
+    T tresult = (T)result;
     if (tresult != result) {
 // Indicates an overflow.
         // It is possible that there will be an overflow when all the higher bits are still set to zero, and we won't catch it,

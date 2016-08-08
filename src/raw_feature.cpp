@@ -3,8 +3,6 @@
 #include "raw_feature_histogram.h"
 #include "util.h"
 
-#include <boost/lexical_cast.hpp>
-
 
 template <typename T>
 RawFeature<T>::RawFeature(size_t expected_documents_count)

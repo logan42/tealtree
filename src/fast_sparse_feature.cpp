@@ -3,6 +3,8 @@
 #include "log_trivial.h"
 #include "trainer_data.h"
 
+#include <gheap.hpp>
+
 const FastShardMapping::SHARD_ID_TYPE FastShardMapping::NULL_SHARD;
 const FastShardMapping::SHARD_ID_TYPE FastShardMapping::FINAL_FAKE_SHARD;
 FastShardMapping FastShardMapping ::instance;
@@ -315,6 +317,10 @@ void FastSparseFeatureImpl <BITS>::on_finalize_tree()
         SparseFeatureImpl<BITS>::on_finalize_tree();
         return;
     }
+
+    typedef gheap<> gh;
+    ShardCursorCompare compare;
+
     FastSparseFeatureBuffer * buffer = map->get_buffer();
     VIB & tmp_offsets= buffer->vib;
     tmp_offsets.resize(this->offsets.size());
@@ -326,7 +332,7 @@ void FastSparseFeatureImpl <BITS>::on_finalize_tree()
     size_t n_cursors = this->shards.size() - 1;
     std::vector<ShardCursor> cursors;
     cursors.reserve(n_cursors);
-    heap_t heap;
+    std::vector<ShardCursor *> heap;
     heap.reserve(n_cursors);
     for (size_t i = 0; i < this->shards.size(); i++) {
         if (map->next_shard[i] == FastShardMapping::NULL_SHARD) {
@@ -335,13 +341,14 @@ void FastSparseFeatureImpl <BITS>::on_finalize_tree()
         DOC_ID n_docs = this->shards[map->next_shard[i]].v_ptr - this->shards[i].v_ptr;
         size_t index = cursors.size();
         cursors.push_back(ShardCursor(this->cv, this->offsets, this->shards[i], n_docs, map->shards_to_nodes[i]));
-        handle_t handle = heap.push(&cursors[index]);
-        (*handle)->handle = handle;
+        heap.push_back(&cursors[index]);
+        gh::push_heap(heap.begin(), heap.end(), compare);
     }
     while (heap.size() > 0) {
-        ShardCursor * sc = heap.top();
+        ShardCursor * sc = heap[0];
         if (sc->n_docs_left == 0) {
-            heap.pop();
+            gh::pop_heap(heap.begin(), heap.end(), compare);
+            heap.pop_back();
             continue;
         }
         assert(sc->current_doc_id >= last_doc_id);
@@ -350,7 +357,7 @@ void FastSparseFeatureImpl <BITS>::on_finalize_tree()
         tmp_offsets_writer.write(offset);
         tmp_values_writer.write(sc->current_value);
         sc->next();
-        heap.update(sc->handle);
+        gh::restore_heap_after_item_decrease(heap.begin(), heap.begin(), heap.end(), compare);
     }
     tmp_offsets_writer.flush();
     tmp_values_writer.flush();

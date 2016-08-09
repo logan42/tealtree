@@ -5,7 +5,6 @@
 #include "sparse_feature.h"
 #include "thread_specific_ptr.h"
 
-#include <boost/heap/d_ary_heap.hpp>
 #include <mutex>
 #include <stdio.h>
 
@@ -149,12 +148,6 @@ protected:
     inline void validate_shards() {}
 #endif
 
-    struct ShardCursor;
-    struct ShardCursorCompare;
-
-    typedef typename boost::heap::d_ary_heap<ShardCursor *, boost::heap::mutable_<true>, boost::heap::arity<2>, boost::heap::compare<ShardCursorCompare>> heap_t;
-    typedef typename heap_t::handle_type handle_t;
-
     struct ShardCursor
     {
         typename CV::Iterator  value_it;
@@ -164,7 +157,6 @@ protected:
         DOC_ID current_relative_id;
         DOC_ID current_doc_id;
         ValueType current_value;
-        handle_t handle;
 
 inline ShardCursor(CV & cv, VIB & offsets, Shard & shard, DOC_ID n_docs, TreeNode * node)
     : value_it(cv.iterator(shard.v_ptr)),

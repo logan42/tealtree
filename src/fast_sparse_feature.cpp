@@ -1,9 +1,8 @@
 #include "fast_sparse_feature.h"
 
+#include "gheap.h"
 #include "log_trivial.h"
 #include "trainer_data.h"
-
-#include <gheap.hpp>
 
 const FastShardMapping::SHARD_ID_TYPE FastShardMapping::NULL_SHARD;
 const FastShardMapping::SHARD_ID_TYPE FastShardMapping::FINAL_FAKE_SHARD;

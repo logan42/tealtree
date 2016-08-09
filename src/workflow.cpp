@@ -1,6 +1,7 @@
 #include "dense_feature.h"
 #include "evaluator.h"
 #include "fast_sparse_feature.h"
+#include "gheap.h"
 #include "log_trivial.h"
 #include "metric.h"
 #include "ranking_cost_function.h"
@@ -17,7 +18,6 @@
 #include <boost/log/sinks/text_ostream_backend.hpp>
 #include <boost/log/sources/logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
-#include <gheap.hpp>
 #include <random>
 #include <thread>
 

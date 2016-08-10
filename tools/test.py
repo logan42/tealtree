@@ -9,12 +9,6 @@ import sys
 import time
 
 base_dir = os.path.dirname(os.path.realpath(__file__)) + os.sep + ".."
-buf_arg = 0
-if sys.version_info[0] == 3:
-    os.environ['PYTHONUNBUFFERED'] = '1'
-    buf_arg = 1
-sys.stdout = os.fdopen(sys.stdout.fileno(), 'a+', buf_arg)
-sys.stderr = os.fdopen(sys.stderr.fileno(), 'a+', buf_arg)
  
 
 parser = argparse.ArgumentParser(description='Evaluate tree ensemble.')

@@ -9,6 +9,13 @@ import sys
 import time
 
 base_dir = os.path.dirname(os.path.realpath(__file__)) + os.sep + ".."
+buf_arg = 0
+if sys.version_info[0] == 3:
+    os.environ['PYTHONUNBUFFERED'] = '1'
+    buf_arg = 1
+sys.stdout = os.fdopen(sys.stdout.fileno(), 'a+', buf_arg)
+sys.stderr = os.fdopen(sys.stderr.fileno(), 'a+', buf_arg)
+ 
 
 parser = argparse.ArgumentParser(description='Evaluate tree ensemble.')
 parser.add_argument("--build",
@@ -17,6 +24,7 @@ parser.add_argument("--build",
 args = parser.parse_args()
 
 def build(build_script):
+    print "Building..."
     directory = base_dir
     start = time.time()
     p = subprocess.Popen("./" + build_script, cwd=directory, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)

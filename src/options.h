@@ -13,7 +13,6 @@ struct Options
     std::string action;
     std::string input_pipe;
     std::string input_file;
-    bool input_stdin;
     std::string input_format;
     std::string feature_names_file;
     std::string output_tree;

@@ -23,6 +23,10 @@ public:
     virtual void consume_row(std::unique_ptr<EvaluatedRow> row) = 0;
     virtual std::vector<float_t> get_epochs() = 0;
     virtual std::string get_name() = 0;
+    virtual bool is_query_based() 
+    { 
+        return false; 
+    }
 };
 
 class AveragingMetric : public Metric
@@ -163,6 +167,10 @@ public:
     {
         this->flush();
         return AveragingMetric::get_epochs();
+    }
+    virtual bool is_query_based()
+    {
+        return true;
     }
 };
 

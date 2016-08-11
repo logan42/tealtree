@@ -89,7 +89,7 @@ if args.build:
         exit()
     
 
-reg =  test("regression", "RMSE", [54.8270, 54.8270, 52.7780, 52.7780], 0.001)
+reg =  test("regression", "RMSE", [31.66, 31.66, 41.34, 41.34], 0.01)
 bc =   test("binary_classification", "Accuracy", [0.9988, 1.0000], 0.0001)
 rank = test("ranker", "NDCG@10", [0.513, 0.549, 0.487], 0.001)
 #mslr = test("MSLR", "NDCG", [0.7707, 0.6837], 0.0001, command="run_10percent.sh")

@@ -86,7 +86,7 @@ void Workflow::run()
 void Workflow::run_train()
 {
 this->tree_writer = this->get_tree_writer();
-    auto cost_function = this->get_cost_function();
+    this->cost_function = this->get_cost_function();
     this->tree_writer->set_cost_function(cost_function->get_registry_name());
     auto training_data = this->read_tsv();
     const std::vector<float_t> * labels = &std::get<0>(training_data);
@@ -101,10 +101,15 @@ this->tree_writer = this->get_tree_writer();
 void Workflow::run_evaluate()
 {
     this->ensemble = load_ensemble(this->options.input_tree);
+    std::string metric_name = this->options.metric;
+    if (metric_name.size() == 0) {
+        metric_name = CostFunction::create(ensemble->get_cost_function())->get_default_metric_name();
+    }
+    std::unique_ptr<Metric> metric = std::unique_ptr<Metric>(Metric::get_metric(metric_name));
 
     INPUT_ROW_PIPELINE_PTR_TYPE input_pipe= std::shared_ptr<INPUT_ROW_PIPELINE_TYPE>(new INPUT_ROW_PIPELINE_TYPE(this->get_bbq_size()));
     std::shared_ptr<ColumnConsumerProvider> ccp(new ColumnConsumerProviderForEvaluation(input_pipe, ensemble.get(), this->options.exponentiate_label));
-    std::unique_ptr<DataFileReader> tsv = this->get_tsv_reader(ccp);
+    std::unique_ptr<DataFileReader> tsv = this->get_tsv_reader(ccp, metric->is_query_based());
 
     std::thread reader(
          [tsv = std::move(tsv)]() mutable {
@@ -126,11 +131,6 @@ void Workflow::run_evaluate()
     evaluator.evaluate_all();
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-    std::string metric_name = this->options.metric;
-    if (metric_name.size() == 0) {
-        metric_name = CostFunction::create(ensemble->get_cost_function())->get_default_metric_name();
-    }
-    std::unique_ptr<Metric> metric = std::unique_ptr<Metric>(Metric::get_metric(metric_name));
     while (true) {
         std::unique_ptr<EvaluatedRow> row = evaluated_pipe->pop().get();
         if (row == nullptr) {
@@ -454,12 +454,12 @@ std::pair<std::unique_ptr<LineReader>, std::string> Workflow::get_line_reader()
             std::unique_ptr<LineReader>(new FileReader(this->options.input_file.c_str())),
             this->options.input_file);
     }
-    if (this->options.input_pipe.size() > 0) {
+    else if (this->options.input_pipe.size() > 0) {
         return std::make_pair(
             std::unique_ptr<LineReader>(new PipeReader(this->options.input_pipe.c_str())),
             "pipe");
     }
-    if (this->options.input_stdin) {
+    else {
         return std::make_pair(
             std::unique_ptr<LineReader>(new StdInReader()),
             "stdin");
@@ -468,7 +468,7 @@ std::pair<std::unique_ptr<LineReader>, std::string> Workflow::get_line_reader()
 }
 
 
-std::unique_ptr<DataFileReader> Workflow::get_tsv_reader(std::shared_ptr<ColumnConsumerProvider> ccp)
+std::unique_ptr<DataFileReader> Workflow::get_tsv_reader(std::shared_ptr<ColumnConsumerProvider> ccp, bool with_query)
 {
     auto pair = std::move(this->get_line_reader());
     std::unique_ptr<LineReader>line_reader = std::move(pair.first);
@@ -476,11 +476,13 @@ std::unique_ptr<DataFileReader> Workflow::get_tsv_reader(std::shared_ptr<ColumnC
 
     std::unique_ptr<DataFileReader> result;
     if (options.input_format == "tsv") {
-    DataFileReader * tsv = new TsvReader(std::move(line_reader), this->options.tsv_separator, ccp, this->options.tsv_query, this->options.tsv_label);
+        std::string tsv_query = with_query ? this->options.tsv_query : "";
+    DataFileReader * tsv = new TsvReader(std::move(line_reader), this->options.tsv_separator, ccp, tsv_query, this->options.tsv_label);
     result = std::unique_ptr<DataFileReader>(tsv);
     }
     if (options.input_format == "svm") {
-        SvmReader * svm = new SvmReader(std::move(line_reader), ccp, this->options.svm_query);
+        std::string svm_query = with_query ? this->options.svm_query : "";
+        SvmReader * svm = new SvmReader(std::move(line_reader), ccp, svm_query);
         std::unique_ptr<std::vector<std::string>> feature_names = this->get_feature_names();
         if (feature_names.get() != nullptr) {
             svm->set_feature_names(std::move(feature_names));
@@ -504,7 +506,7 @@ std::tuple<const std::vector<float_t>, const std::vector<DOC_ID>, Workflow::FEAT
     ColumnConsumerProviderForTraining * ccp_plain_ptr = new ColumnConsumerProviderForTraining();
     std::shared_ptr<ColumnConsumerProviderForTraining >  ccp_ptr (ccp_plain_ptr);
     ccp_ptr->default_type = RawFeatureType(this->options.default_raw_feature_type);
-    std::unique_ptr<DataFileReader> tsv = this->get_tsv_reader(ccp_ptr);
+    std::unique_ptr<DataFileReader> tsv = this->get_tsv_reader(ccp_ptr, this->cost_function->is_query_based());
     tsv->read();
     BOOST_LOG_TRIVIAL(info)
         << "Loaded " << ccp_ptr->label_consumer->get_data()->size() << " documents, "

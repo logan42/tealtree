@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <boost/program_options.hpp>
+#include <tclap/CmdLine.h>
 
 namespace po = boost::program_options;
 
@@ -11,6 +12,94 @@ Options options;
 
 void parse_options(int argc, const char * argv[])
 {
+    typedef TCLAP::ValueArg<std::string> TS;
+    typedef TCLAP::ValueArg<size_t> TN;
+    typedef TCLAP::ValueArg<float_t> TF;
+    typedef TCLAP::ValueArg<char> TC;
+    typedef TCLAP::SwitchArg TB;
+
+    TCLAP::CmdLine cmd("TealTree gradient boosting decision tree toolkit", ' ', "0.9");
+
+    TN logging_severity_arg("", "logging_severity", "Minimum severity of logging messages; 0=TRACE, 1=DEBUG, 2=INFO, etc.", false, 2, "size_t", cmd);
+    TS action_arg("", "action", "Action to perform", true, "", "string", cmd);
+    TS input_pipe_arg("", "input_pipe", "Command that produces the input file. The output of this command will be read as input data.", false, "", "string", cmd);
+    TS input_file_arg("", "input_file", "Input file to read data from.", false, "", "string", cmd);
+    TS input_format_arg("", "input_format", "Input file format.", true, "", "string", cmd);
+    TS feature_names_file_arg("", "feature_names_file", "File containing feature names.", false, "", "string", cmd);
+    TS output_tree_arg("", "output_tree", "Output file containing the trained tree ensemble.", false, "", "string", cmd);
+    TC tsv_separator_arg("", "tsv_separator", "Separator of input TSV file.", false, ',', "character", cmd);
+    TS tsv_label_arg("", "tsv_label", "The name of the 'Label' column in the input TSV file.", false, "Label", "string", cmd);
+    TS tsv_query_arg("", "tsv_query", "The name of the 'Query' column in the input TSV file.", false, "Query", "string", cmd);
+    TS svm_query_arg("", "svm_query", "The name of the query_id prefix  in the input SVM file.", false, "qid", "string", cmd);
+    TN default_raw_feature_type_arg("", "default_raw_feature_type", "When parsing a TSV or SVM file, Defines the default type of the feature values to expect. For more details, see src\\types.h, enum RawFeatureType.", false, 1, "size_t", cmd);
+    TN random_seed_arg("", "random_seed", "Initial seed for random numbers generator. Set to 0 for randomized seed.", false, 1, "size_t", cmd);
+    TF input_sample_rate_arg("", "input_sample_rate", "Subsample only a given fraction of input documents.Useful for testing.", false, 1, "float", cmd);
+    TF base_score_arg("", "base_score", "Base score of the model.", false, 0, "float", cmd);
+    TN bucket_max_bits_arg("", "bucket_max_bits", "Maximum number of bits to represent feature values. Any feature will be bucketized into at most 2^bucket_max_bits values. Possible values: 1..16.", false, 12, "size_t", cmd);
+    TF sparsity_threshold_arg("", "sparsity_threshold", "Feature sparsity threshold. Features that are sparser than this will be encoded in sparse format.", false, (float_t)0.1, "float", cmd);
+    TF initial_tail_size_arg("", "initial_tail_size", "Initial tail size for fast sparse features.", false, (float_t)0.03, "float", cmd);
+    TS sparse_feature_version_arg("", "sparse_feature_version", "Defines which implementation of the sparse features to use.", false, "auto", "string", cmd);
+    TN n_threads_arg("", "n_threads", "Number of threads to use for computation", false, 0, "size_t", cmd);
+    TS cost_function_arg("", "cost_function", "Cost function and objective to solve. Possible values: regression, binary_classification, lambda_rank@N.", false, "", "string", cmd);
+    TS step_arg("", "step", "Step of gradient descent. Possible values: gradient, newton.", false, "newton", "string", cmd);
+    TB exponentiate_label_switch("", "exponentiate_label", "Performs label = 2^label - 1 transformation. Often used for LambdaRank.", cmd, false);
+    TN n_leaves_arg("", "n_leaves", "Number of leaves per tree.", false, 0, "size_t", cmd);
+    TN max_depth_arg("", "max_depth", "Maximum depth of a tree in the ensemble. Set to 0 to disable.", false, 0, "size_t", cmd);
+    TN n_trees_arg("", "n_trees", "Number of trees in the ensemble.", false, 0, "size_t", cmd);
+    TN min_node_docs_arg("", "min_node_docs", "Minimum number of documents in a node.", false, 1, "size_t", cmd);
+    TF min_node_hessian_arg("", "min_node_hessian", "Minimum cumulative value of Hessian in a node.", false, (float_t)1.0, "float", cmd);
+    TF learning_rate_arg("", "learning_rate", "Learning rate, defines the step size coefficient.", false, (float_t)0.1, "float", cmd);
+    //TODO:Quadratic spread
+    //("quadratic_spread", po::value<bool>(&options.quadratic_spread)->default_value(false), "Defines the formula for computing spread value of a split. If false, then absolute value of a difference between average gradients is used. If true, then difference of variances is used.")
+    TF regularization_lambda_arg("", "regularization_lambda", "Regularization parameter for quadratic spread.", false, (float_t)1.0, "float", cmd);
+    TB tree_debug_info_switch("", "tree_debug_info", "Whether to store debug information in the output ensemble.", cmd, false);
+
+    TS input_tree_arg("", "input_tree", "For evaluation: input file containing a trained ensemble.", false, "", "string", cmd);
+    TS metric_arg("", "metric", "For evaluation: Metric name to compute, if different from the default.", false, "", "string", cmd);
+    TS output_epochs_arg("", "output_epochs", "For evaluation: optional output file to save the metric value for every epoch to.", false, "", "string", cmd);
+    TS output_predictions_arg("", "output_predictions", "For evaluation: optional output file to save predictions to.", false, "", "string", cmd);
+
+    cmd.parse(argc, argv);
+
+    options.logging_severity = logging_severity_arg.getValue();
+    options.action = action_arg.getValue();
+    options.input_pipe = input_pipe_arg.getValue();
+    options.input_file = input_file_arg.getValue();
+    options.input_format = input_format_arg.getValue();
+    options.feature_names_file = feature_names_file_arg.getValue();
+    options.output_tree = output_tree_arg.getValue();
+    options.tsv_separator = tsv_separator_arg.getValue();
+    options.tsv_label = tsv_label_arg.getValue();
+    options.tsv_query = tsv_query_arg.getValue();
+    options.svm_query = svm_query_arg.getValue();
+    options.default_raw_feature_type = default_raw_feature_type_arg.getValue();
+    options.random_seed = random_seed_arg.getValue();
+    options.input_sample_rate = input_sample_rate_arg.getValue();
+    options.base_score = base_score_arg.getValue();
+    options.bucket_max_bits = bucket_max_bits_arg.getValue();
+    options.sparsity_threshold = sparsity_threshold_arg.getValue();
+    options.initial_tail_size = initial_tail_size_arg.getValue();
+    options.sparse_feature_version = sparse_feature_version_arg.getValue();
+    options.n_threads = n_threads_arg.getValue();
+    options.cost_function = cost_function_arg.getValue();
+    options.step = step_arg.getValue();
+    options.exponentiate_label = exponentiate_label_switch.getValue();
+    options.n_leaves = n_leaves_arg.getValue();
+    options.max_depth = max_depth_arg.getValue();
+    options.n_trees = n_trees_arg.getValue();
+    options.min_node_docs = min_node_docs_arg.getValue();
+    options.min_node_hessian = min_node_hessian_arg.getValue();
+    options.step_alpha = learning_rate_arg.getValue();
+    options.quadratic_spread = true;
+    options.regularization_lambda = regularization_lambda_arg.getValue();
+    options.tree_debug_info = tree_debug_info_switch.getValue();
+    options.input_tree = input_tree_arg.getValue();
+    options.metric = metric_arg.getValue();
+    options.output_epochs = output_epochs_arg.getValue();
+    options.output_predictions = output_predictions_arg.getValue();
+
+    return;
+
     po::options_description desc("Options");
     desc.add_options()
         ("help", "Print help messages")
@@ -18,7 +107,7 @@ void parse_options(int argc, const char * argv[])
         ("action", po::value<std::string>(&options.action), "Action to perform. Can be either 'train' or 'evaluate'.")
         ("input_pipe", po::value<std::string>(&options.input_pipe), "Command that produces pipe to read the input data from. For reading from plain tsv file use 'cat <filename>'.")
         ("input_file", po::value<std::string>(&options.input_file), "Input file to read training data from.")
-        ("input_stdin", po::value<bool>(&options.input_stdin), "Read training data from stdin.")
+        //("input_stdin", po::value<bool>(&options.input_stdin), "Read training data from stdin.")
         ("input_format", po::value<std::string>(&options.input_format), "Input file format. Choices=tsv,svm.")
         ("feature_names_file", po::value<std::string>(&options.feature_names_file), "File containing feature names, optional.")
         ("output_tree", po::value<std::string>(&options.output_tree), "Output file containing the trained tree ensemble.")
@@ -34,7 +123,6 @@ void parse_options(int argc, const char * argv[])
         ("bucket_max_bits", po::value<uint32_t>(&options.bucket_max_bits)->default_value(12), "Maximum number of bits to bucketize features. Any feature will be bucketized into at most 2^bucket_max_bits values. Possible values: 1..16.")
         ("sparsity_threshold", po::value<float_t>(&options.sparsity_threshold)->default_value((float_t)0.1), "Feature sparsity threshold. Features that are sparser than this will be encoded in sparse format.")
         ("initial_tail_size", po::value<float_t>(&options.initial_tail_size)->default_value((float_t)0.03), "For fast sparse features defines the initial tail size as a percentage of the offsets buffer.")
-        //("disable_fast_sparse_features", po::value<bool>(&options.disable_fast_sparse_features)->default_value(false), "Disable fast sparse feature implementation and use the plain old sparse feature implementation instead.")
         ("sparse_feature_version", po::value<std::string>(&options.sparse_feature_version)->default_value("auto"), "Defines which implementation of the sparse features to use.")
         ("n_threads", po::value<uint32_t>(&options.n_threads)->default_value(0), "Number of threads.")
         ("cost_function", po::value<std::string>(&options.cost_function), "Cost function and objective to solve. Possible values: regression, binary_classification, lambda_rank.")
@@ -80,7 +168,7 @@ void validate_options()
     size_t inputs = 0;
     if (options.input_file.size() > 0) inputs++;
     if (options.input_pipe.size() > 0) inputs++;
-    if (options.input_stdin) inputs++;    
+    //if (options.input_stdin) inputs++;    
     if (inputs != 1) {
         throw po::validation_error(po::validation_error::invalid_option_value, std::string("Exactly one of (input_file, input_pipe, input_stdin) should be specified as input."));
     }

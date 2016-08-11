@@ -119,7 +119,7 @@ void RawFeatureHistogramImpl<T>::compute_buckets(uint32_t max_buckets)
 
 template <typename T>
 void RawFeatureHistogramImpl<T>::compute_buckets_fast(uint32_t max_buckets)
-{
+{\
     size_t unique_values = this->hist_values.size();
     assert(max_buckets > 0);
     assert(unique_values > max_buckets);

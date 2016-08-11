@@ -15,7 +15,6 @@ int main(int argc, const char * argv[])
 #ifdef _WIN32
     try {
         parse_options(argc, argv);
-        validate_options();
         Workflow workflow(options);
         workflow.run();
     }
@@ -27,7 +26,6 @@ int main(int argc, const char * argv[])
     }
 #else
     parse_options(argc, argv);
-    validate_options();
     Workflow workflow(options);
     workflow.run();
 #endif

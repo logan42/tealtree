@@ -36,6 +36,8 @@ private:
     std::unique_ptr<boost::threadpool::pool> thread_pool;
     std::unique_ptr<std::mt19937 > random_engine;
     std::unique_ptr<Trainer> trainer;
+    std::unique_ptr<CostFunction> cost_function;
+    
     typedef BlockingBoundedQueue <std::future<std::unique_ptr<Feature>>> FEATURE_PIPELINE_TYPE;
     typedef std::shared_ptr<FEATURE_PIPELINE_TYPE> FEATURE_PIPELINE_PTR_TYPE;
     std::unique_ptr<TreeWriter> tree_writer;
@@ -64,7 +66,7 @@ private:
     void check_for_overflow();
     std::unique_ptr<std::vector<std::string>> get_feature_names();
     std::pair<std::unique_ptr<LineReader>, std::string>get_line_reader();
-    std::unique_ptr<DataFileReader> get_tsv_reader(std::shared_ptr<ColumnConsumerProvider>  ccp);
+    std::unique_ptr<DataFileReader> get_tsv_reader(std::shared_ptr<ColumnConsumerProvider>  ccp, bool with_query);
     std::tuple<const std::vector<float_t>, const std::vector<DOC_ID>, FEATURE_PIPELINE_PTR_TYPE  > read_tsv();
     FEATURE_PIPELINE_PTR_TYPE  cook_features(std::vector<std::unique_ptr<DynamicRawFeature>> drfs);
     std::unique_ptr<Feature> cook_feature(std::unique_ptr<DynamicRawFeature> drf);

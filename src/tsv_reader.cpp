@@ -263,7 +263,7 @@ void SvmReader::read_row(std::string * row, size_t line_number)
                 continue;
             }
             else {
-                throw std::runtime_error(std::string("Cannot parse: invalid prefix '") + std::string(prefix) + std::string(" in line ") + std::to_string(line_number));
+                throw std::runtime_error(std::string("Cannot parse: invalid prefix '") + std::string(prefix) + std::string("' in line ") + std::to_string(line_number));
             }
         }
 

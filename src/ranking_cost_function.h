@@ -45,6 +45,11 @@ public:
         return T().get_registry_name();
     }
 
+    virtual bool is_query_based()
+    {
+        return true;
+    }
+
     virtual void compute_gradient(TrainerData * trainer_data, bool newton_step);
     virtual void compute_gradient(TrainerData * trainer_data, bool newton_step, boost::threadpool::pool* tp);;
 

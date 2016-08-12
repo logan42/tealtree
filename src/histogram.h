@@ -1,6 +1,7 @@
 #ifndef __tealtree__histogram__
 #define __tealtree__histogram__
 
+#include <algorithm>
 #include <stdio.h>
 #include <vector>
 

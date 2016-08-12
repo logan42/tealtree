@@ -2,9 +2,10 @@
 #define util_hpp
 
 #include <boost/lexical_cast.hpp>
-#include <sstream>
+#include <memory>
 #include <stdexcept>
 #include <stdio.h>
+#include <sstream>
 #include <vector>
 
 #include "types.h"

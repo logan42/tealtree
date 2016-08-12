@@ -1,11 +1,13 @@
 #ifndef jadetree_types_h
 #define jadetree_types_h
 
-#include "boost/variant.hpp"
+#include <cassert>
 #include <cmath>
 #include <cstring>
 #include <limits>
 #include <stdint.h>
+
+#include "enum_factory.h"
 
 typedef uint32_t DOC_ID;
 
@@ -15,6 +17,16 @@ typedef uint32_t FEATURE_INDEX;
 
 typedef uint16_t UNIVERSAL_BUCKET;
 
+#define RawFeatureTypeDefinition(T, XX) \
+XX(T, UINT8 , =1) \
+XX(T, INT8, =2) \
+XX(T, UINT16, =3) \
+XX(T, INT16, =4) \
+XX(T, UINT32, =5) \
+XX(T, INT32, =6) \
+XX(T, FLOAT, =7) \
+
+/*
 enum class RawFeatureType {
     UINT8 =  1,
     INT8 =   2,
@@ -24,6 +36,8 @@ enum class RawFeatureType {
     INT32 =  6,
     FLOAT =  7
 };
+*/
+DECLARE_ENUM(RawFeatureType, RawFeatureTypeDefinition)
 
 const RawFeatureType MAX_RAW_FEATURE_TYPE = RawFeatureType::FLOAT;
 
@@ -46,8 +60,6 @@ union FeatureValue
 template <typename T>
 RawFeatureType get_feature_type_from_template();
 
-const char * feature_type_to_string(RawFeatureType t);
-
 #define INSTANTITATE_TEMPLATES_FOR_RAW_FEATURE_TYPES(cc) \
 template class cc <uint8_t>;\
 template class cc <int8_t>;\
@@ -56,8 +68,6 @@ template class cc <int16_t>;\
 template class cc <uint32_t>;\
 template class cc <int32_t>;\
 template class cc <float_t>;
-
-typedef boost::variant<uint8_t,int8_t,uint8_t,int8_t,uint8_t,int8_t,float_t> FEATURE_TYPE_VARIANT;
 
 const float_t EPSILON = sqrt(std::numeric_limits<float>::min());
 

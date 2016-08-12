@@ -106,7 +106,7 @@ class  FeatureMetadataImpl : public AbstractFeatureMetadataImpl
 public:
     virtual const std::string get_registry_name()
     {
-        return feature_type_to_string(get_feature_type_from_template<T>());
+        return to_string(get_feature_type_from_template<T>());
     }
 
     virtual std::string value_to_string(const FeatureValue & value) const

@@ -2,7 +2,6 @@
 
 BASE=../..
 
-# --quadratic_spread false 
 $BASE/bin/tealtree \
  --action train \
  --input_file machine.txt.train \

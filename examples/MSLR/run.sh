@@ -19,7 +19,6 @@ unzip -p $INPUT_FILE Fold1/train.txt \
  --input_sample_rate $SAMPLE_RATE \
  --feature_names_file $FEATURE_NAMES_FILE \
  --cost_function lambda_rank \
- --step newton \
  --exponentiate_label \
  --n_leaves 150 \
  --n_trees 150 \

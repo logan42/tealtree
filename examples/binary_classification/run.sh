@@ -8,7 +8,6 @@ $BASE/bin/tealtree \
  --input_format svm \
  --feature_names_file feature_names.txt \
  --cost_function binary_classification \
- --step newton \
  --n_leaves 7 \
  --max_depth 3 \
  --n_trees 2 \

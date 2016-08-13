@@ -86,6 +86,4 @@ extern Options options;
 
 void parse_options(int argc, const char * argv[]);
 
-void validate_options();
-
 #endif /* defined(__tealtree__options__) */

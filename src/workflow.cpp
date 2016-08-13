@@ -475,21 +475,26 @@ std::unique_ptr<DataFileReader> Workflow::get_tsv_reader(std::shared_ptr<ColumnC
     std::string input_source = pair.second;
 
     std::unique_ptr<DataFileReader> result;
-    if (options.input_format == "tsv") {
+    switch (options.input_format) {
+    case InputFormat::TSV:
+    {
         std::string tsv_query = with_query ? this->options.tsv_query : "";
-    DataFileReader * tsv = new TsvReader(std::move(line_reader), this->options.tsv_separator, ccp, tsv_query, this->options.tsv_label);
-    result = std::unique_ptr<DataFileReader>(tsv);
+        DataFileReader * tsv = new TsvReader(std::move(line_reader), this->options.tsv_separator, ccp, tsv_query, this->options.tsv_label);
+        result = std::unique_ptr<DataFileReader>(tsv);
+        break;
     }
-    if (options.input_format == "svm") {
-        std::string svm_query = with_query ? this->options.svm_query : "";
-        SvmReader * svm = new SvmReader(std::move(line_reader), ccp, svm_query);
-        std::unique_ptr<std::vector<std::string>> feature_names = this->get_feature_names();
-        if (feature_names.get() != nullptr) {
-            svm->set_feature_names(std::move(feature_names));
+    case InputFormat::SVM:
+        {
+            std::string svm_query = with_query ? this->options.svm_query : "";
+            SvmReader * svm = new SvmReader(std::move(line_reader), ccp, svm_query);
+            std::unique_ptr<std::vector<std::string>> feature_names = this->get_feature_names();
+            if (feature_names.get() != nullptr) {
+                svm->set_feature_names(std::move(feature_names));
+            }
+            result = std::unique_ptr<DataFileReader>(svm);
+            break;
         }
-        result = std::unique_ptr<DataFileReader>(svm);
-    }
-    if (result.get() == nullptr) {
+    default:
         throw std::runtime_error("Cannot create file format parser.");
     }
     result->set_sample_rate(this->options.input_sample_rate, this->random_engine.get(), false);
@@ -497,7 +502,7 @@ std::unique_ptr<DataFileReader> Workflow::get_tsv_reader(std::shared_ptr<ColumnC
     if (this->options.input_sample_rate < 1.0) {
         sample_rate_clause = " with " + format_float(this->options.input_sample_rate, 3) + " subsample rate";
     }
-    BOOST_LOG_TRIVIAL(info) << "Reading data from " << input_source << " in " << this->options.input_format << " format" << sample_rate_clause << " ...";
+    BOOST_LOG_TRIVIAL(info) << "Reading data from " << input_source << " in " << to_string(this->options.input_format) << " format" << sample_rate_clause << " ...";
     return result;
 }
 

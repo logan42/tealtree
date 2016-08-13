@@ -118,7 +118,9 @@ void parse_options(int argc, const char * argv[])
     TS action_arg("", "action", "Action to perform", true, "", "string", cmd);
     TS input_pipe_arg("", "input_pipe", "Command that produces the input file. The output of this command will be read as input data.", false, "", "string", cmd);
     TS input_file_arg("", "input_file", "Input file to read data from.", false, "", "string", cmd);
-    TS input_format_arg("", "input_format", "Input file format.", true, "", "string", cmd);
+    auto input_format_allowed = get_enum_values<InputFormat>();
+    TCLAP::ValuesConstraint<std::string> input_format_con(input_format_allowed);
+    TS input_format_arg("", "input_format", "Input file format.", true, "", &input_format_con, cmd);
     TS feature_names_file_arg("", "feature_names_file", "File containing feature names.", false, "", "string", cmd);
     TS output_tree_arg("", "output_tree", "Output file containing the trained tree ensemble.", false, "", "string", cmd);
     TC tsv_separator_arg("", "tsv_separator", "Separator of input TSV file.", false, ',', "character", cmd);
@@ -169,7 +171,7 @@ void parse_options(int argc, const char * argv[])
     options.action = action_arg.getValue();
     options.input_pipe = input_pipe_arg.getValue();
     options.input_file = input_file_arg.getValue();
-    options.input_format = input_format_arg.getValue();
+    options.input_format = parse_enum<InputFormat>(input_format_arg.getValue());
     options.feature_names_file = feature_names_file_arg.getValue();
     options.output_tree = output_tree_arg.getValue();
     options.tsv_separator = tsv_separator_arg.getValue();
@@ -212,7 +214,7 @@ void parse_options(int argc, const char * argv[])
         ("input_pipe", po::value<std::string>(&options.input_pipe), "Command that produces pipe to read the input data from. For reading from plain tsv file use 'cat <filename>'.")
         ("input_file", po::value<std::string>(&options.input_file), "Input file to read training data from.")
         //("input_stdin", po::value<bool>(&options.input_stdin), "Read training data from stdin.")
-        ("input_format", po::value<std::string>(&options.input_format), "Input file format. Choices=tsv,svm.")
+        //("input_format", po::value<std::string>(&options.input_format), "Input file format. Choices=tsv,svm.")
         ("feature_names_file", po::value<std::string>(&options.feature_names_file), "File containing feature names, optional.")
         ("output_tree", po::value<std::string>(&options.output_tree), "Output file containing the trained tree ensemble.")
         ("tsv_separator", po::value<char>(&options.tsv_separator)->default_value('\t'), "Separator of input TSV file.")
@@ -277,9 +279,6 @@ void validate_options()
         throw po::validation_error(po::validation_error::invalid_option_value, std::string("Exactly one of (input_file, input_pipe, input_stdin) should be specified as input."));
     }
 
-    if ((strcmp(options.input_format.c_str(), "tsv") != 0) && (strcmp(options.input_format.c_str(), "svm") != 0)) {
-        throw po::validation_error(po::validation_error::invalid_option_value, std::string("Option input_format can either be tsv or svm."));
-    }
     if ((options.input_sample_rate < 0) || (options.input_sample_rate > 1.0)) {
         throw po::validation_error(po::validation_error::invalid_option_value, std::string("Option input_sample_rate must be between 0.0 and 1.0."));
     }
@@ -314,3 +313,5 @@ void validate_options()
     }
 
 }
+
+DEFINE_ENUM(InputFormat, InputFormatDefinition)

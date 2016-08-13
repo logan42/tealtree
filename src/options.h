@@ -5,7 +5,16 @@
 #include <stdio.h>
 #include <string>
 
+#include "enum_factory.h"
 #include "types.h"
+
+#define InputFormatDefinition(T, XX) \
+XX(T, TSV , =1) \
+XX(T, SVM, =2) \
+
+// enum class InputFormat { ...
+DECLARE_ENUM(InputFormat, InputFormatDefinition)
+
 
 struct Options
 {
@@ -13,7 +22,7 @@ struct Options
     std::string action;
     std::string input_pipe;
     std::string input_file;
-    std::string input_format;
+    InputFormat input_format;
     std::string feature_names_file;
     std::string output_tree;
     char tsv_separator;

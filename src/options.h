@@ -31,6 +31,13 @@ XX(T, newton, =1) \
 // enum class Step{ ...
 DECLARE_ENUM(Step, StepDefinition)
 
+#define SpreadDefinition(T, XX) \
+XX(T, linear, =0) \
+XX(T, quadratic, =1) \
+
+// enum class Spread{ ...
+DECLARE_ENUM(Spread, SpreadDefinition)
+
 
 struct Options
 {
@@ -64,7 +71,7 @@ struct Options
     DOC_ID min_node_docs;
     float_t min_node_hessian;
     float_t step_alpha;
-    bool quadratic_spread;
+    Spread spread;
     float_t regularization_lambda;
     bool tree_debug_info;
 

@@ -158,8 +158,9 @@ void parse_options(int argc, const char * argv[])
     TF min_node_hessian_arg("", "min_node_hessian", "Minimum cumulative value of Hessian in a node.", false, (float_t)1.0, &min_node_hessian_con, cmd);
     NumericConstraint<float_t> learning_rate_con; learning_rate_con.set_gt(0);
     TF learning_rate_arg("", "learning_rate", "Learning rate, defines the step size coefficient.", false, (float_t)0.1, &learning_rate_con, cmd);
-    //TODO:Quadratic spread
-    //("quadratic_spread", po::value<bool>(&options.quadratic_spread)->default_value(false), "Defines the formula for computing spread value of a split. If false, then absolute value of a difference between average gradients is used. If true, then difference of variances is used.")
+    auto spread_allowed = get_enum_values<Spread>();
+    TCLAP::ValuesConstraint<std::string> spread_con(spread_allowed);
+    TS spread_arg("", "spread", "Defines the formula for computing spread value of a split. If linear then absolute value of a difference between average gradients is used. If quadratic then the reduction of variances is used.", false, "quadratic", &spread_con, cmd);
     NumericConstraint<float_t> regularization_lambda_con; regularization_lambda_con.set_gte(0);
     TF regularization_lambda_arg("", "regularization_lambda", "Regularization parameter for quadratic spread.", false, (float_t)1.0, &regularization_lambda_con, cmd);
     TB tree_debug_info_switch("", "tree_debug_info", "Whether to store debug information in the output ensemble.", cmd, false);
@@ -200,7 +201,7 @@ void parse_options(int argc, const char * argv[])
     options.min_node_docs = min_node_docs_arg.getValue();
     options.min_node_hessian = min_node_hessian_arg.getValue();
     options.step_alpha = learning_rate_arg.getValue();
-    options.quadratic_spread = true;
+    options.spread = parse_enum<Spread>(spread_arg.getValue());
     options.regularization_lambda = regularization_lambda_arg.getValue();
     options.tree_debug_info = tree_debug_info_switch.getValue();
     options.input_tree = input_tree_arg.getValue();
@@ -244,7 +245,7 @@ void parse_options(int argc, const char * argv[])
         ("min_node_docs", po::value<DOC_ID>(&options.min_node_docs)->default_value(1), "Minimum number of documents in a node.")
         ("min_node_hessian", po::value<float_t>(&options.min_node_hessian)->default_value((float_t)1), "Minimum value of Hessian in a node. This is similar to --min_node_docs for Newton step.")
         ("learning_rate", po::value<float_t>(&options.step_alpha)->default_value((float_t)0.1), "Learning rate, defines the relative step size.")
-        ("quadratic_spread", po::value<bool>(&options.quadratic_spread)->default_value(false), "Defines the formula for computing spread value of a split. If false, then absolute value of a difference between average gradients is used. If true, then difference of variances is used.")
+        //("quadratic_spread", po::value<bool>(&options.quadratic_spread)->default_value(false), "Defines the formula for computing spread value of a split. If false, then absolute value of a difference between average gradients is used. If true, then difference of variances is used.")
         ("regularization_lambda", po::value<float_t>(&options.regularization_lambda)->default_value((float_t)1), "Regularization parameter for quadratic spread.")
         ("tree_debug_info", po::value<bool>(&options.tree_debug_info)->default_value(false), "Whether to store debug information to the output ensemble.")
 
@@ -314,3 +315,4 @@ void validate_options()
 DEFINE_ENUM(InputFormat, InputFormatDefinition)
 DEFINE_ENUM(SparseFeatureVersion, SparseFeatureVersionDefinition)
 DEFINE_ENUM(Step, StepDefinition)
+DEFINE_ENUM(Spread, SpreadDefinition)

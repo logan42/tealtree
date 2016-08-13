@@ -626,7 +626,7 @@ std::unique_ptr<Trainer> Workflow::create_trainer(const std::vector<float_t> * l
     trainer->set_thread_pool(this->thread_pool.get());
     TrainerParams params;
     params.newton_step = this->options.step == Step::newton;
-    params.quadratic_spread = this->options.quadratic_spread;
+    params.quadratic_spread = this->options.spread == Spread::quadratic;
     params.regularization_lambda = this->options.regularization_lambda;
     params.min_node_docs = this->options.min_node_docs;
     params.min_node_hessian = this->options.min_node_hessian;

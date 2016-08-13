@@ -1,5 +1,5 @@
-#ifndef jadetree_feature_h
-#define jadetree_feature_h
+#ifndef tealtree_feature_h
+#define tealtree_feature_h
 
 #include <stdlib.h>
 

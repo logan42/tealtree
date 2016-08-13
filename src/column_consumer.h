@@ -1,5 +1,5 @@
-#ifndef jadetree_column_consumer_h
-#define jadetree_column_consumer_h
+#ifndef tealtree_column_consumer_h
+#define tealtree_column_consumer_h
 
 #include <string.h>
 

@@ -1,5 +1,5 @@
-#ifndef jadetree_types_h
-#define jadetree_types_h
+#ifndef tealtree_types_h
+#define tealtree_types_h
 
 #include <cassert>
 #include <cmath>

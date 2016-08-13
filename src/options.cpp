@@ -103,6 +103,14 @@ public:
     }
 };
 
+inline void flag_assert(bool condition, const std::string & message)
+{
+    if (condition) {
+        return;
+    }
+    throw TCLAP::ArgException(message);
+}
+
 
 void parse_options(int argc, const char * argv[])
 {
@@ -153,7 +161,8 @@ void parse_options(int argc, const char * argv[])
     TB exponentiate_label_switch("", "exponentiate_label", "Performs label = 2^label - 1 transformation. Often used for LambdaRank.", cmd, false);
     TN n_leaves_arg("", "n_leaves", "Number of leaves per tree.", false, 0, "size_t", cmd);
     TN max_depth_arg("", "max_depth", "Maximum depth of a tree in the ensemble. Set to 0 to disable.", false, 0, "size_t", cmd);
-    TN n_trees_arg("", "n_trees", "Number of trees in the ensemble.", false, 0, "size_t", cmd);
+    NumericConstraint<size_t> n_trees_con; n_trees_con.set_gt(0);
+    TN n_trees_arg("", "n_trees", "Number of trees in the ensemble.", false, 0, &n_trees_con, cmd);
     NumericConstraint<size_t> min_node_docs_con; min_node_docs_con.set_gt(0);
     TN min_node_docs_arg("", "min_node_docs", "Minimum number of documents in a node.", false, 1, &min_node_docs_con, cmd);
     NumericConstraint<float_t> min_node_hessian_con; min_node_hessian_con.set_gt(0);
@@ -173,6 +182,15 @@ void parse_options(int argc, const char * argv[])
     TS output_predictions_arg("", "output_predictions", "For evaluation: optional output file to save predictions to.", false, "", "string", cmd);
 
     cmd.parse(argc, argv);
+
+    if (train_switch.getValue()) {
+        flag_assert(output_tree_arg.isSet(), "--output_tree must be set");
+        flag_assert(n_trees_arg.isSet(), "--n_trees must be set");
+    }
+    if (evaluate_switch.getValue())
+    {
+        flag_assert(input_tree_arg.isSet(), "--input_tree must be set");
+    }
 
     options.logging_severity = logging_severity_arg.getValue();
     options.train = train_switch.getValue();

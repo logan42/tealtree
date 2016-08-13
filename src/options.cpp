@@ -125,7 +125,7 @@ void parse_options(int argc, const char * argv[])
     TS tsv_label_arg("", "tsv_label", "The name of the 'Label' column in the input TSV file.", false, "Label", "string", cmd);
     TS tsv_query_arg("", "tsv_query", "The name of the 'Query' column in the input TSV file.", false, "Query", "string", cmd);
     TS svm_query_arg("", "svm_query", "The name of the query_id prefix  in the input SVM file.", false, "qid", "string", cmd);
-    TN default_raw_feature_type_arg("", "default_raw_feature_type", "When parsing a TSV or SVM file, Defines the default type of the feature values to expect. For more details, see src\\types.h, enum RawFeatureType.", false, 1, "size_t", cmd);
+    TS default_raw_feature_type_arg("", "default_raw_feature_type", "When parsing a TSV or SVM file, Defines the default type of the feature values to expect.", false, "uint8", "string", cmd);
     TN random_seed_arg("", "random_seed", "Initial seed for random numbers generator. Set to 0 for randomized seed.", false, 1, "size_t", cmd);
     NumericConstraint<float_t> input_sample_rate_con; input_sample_rate_con.set_gte(0)->set_lte(1);
     TF input_sample_rate_arg("", "input_sample_rate", "Subsample only a given fraction of input documents.Useful for testing.", false, 1, &input_sample_rate_con, cmd);
@@ -174,7 +174,7 @@ void parse_options(int argc, const char * argv[])
     options.tsv_label = tsv_label_arg.getValue();
     options.tsv_query = tsv_query_arg.getValue();
     options.svm_query = svm_query_arg.getValue();
-    options.default_raw_feature_type = default_raw_feature_type_arg.getValue();
+    options.default_raw_feature_type = parse_enum<RawFeatureType>(default_raw_feature_type_arg.getValue());
     options.random_seed = random_seed_arg.getValue();
     options.input_sample_rate = input_sample_rate_arg.getValue();
     options.base_score = base_score_arg.getValue();
@@ -217,7 +217,7 @@ void parse_options(int argc, const char * argv[])
         ("tsv_label", po::value<std::string>(&options.tsv_label)->default_value("Label"), "The name of the 'Label' column in the input TSV file.")
         ("tsv_query", po::value<std::string>(&options.tsv_query)->default_value("Query"), "The name of the 'Query' column in the input TSV file.")
         ("svm_query", po::value<std::string>(&options.svm_query)->default_value(""), "The name of thequery_id prefix  in the input SVM file.")
-        ("default_raw_feature_type", po::value<uint32_t>(&options.default_raw_feature_type)->default_value(1), "When parsing a TSV file, Defines the default type of the feature values to expect. For more details, see src\\types.h, enum RawFeatureType.")
+        //("default_raw_feature_type", po::value<uint32_t>(&options.default_raw_feature_type)->default_value(1), "When parsing a TSV file, Defines the default type of the feature values to expect. For more details, see src\\types.h, enum RawFeatureType.")
         ("random_seed", po::value<uint32_t>(&options.random_seed)->default_value(1), "Initial seed for random numbers generator. Set to 0 for randomized seed.")
         ("input_sample_rate", po::value<float_t>(&options.input_sample_rate)->default_value(1.0), "Subsample only a given fraction of input documents to train. Useful for testing.")
         ("base_score", po::value<float_t>(&options.base_score)->default_value((float_t)0.0), "Base score of the model.")

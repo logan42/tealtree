@@ -15,7 +15,7 @@ unzip -p $INPUT_FILE Fold1/train.txt \
  | $BASE/bin/tealtree \
  --action train \
  --input_format svm \
- --default_raw_feature_type 3 \
+ --default_raw_feature_type uint16 \
  --input_sample_rate $SAMPLE_RATE \
  --feature_names_file $FEATURE_NAMES_FILE \
  --cost_function lambda_rank \

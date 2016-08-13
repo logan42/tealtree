@@ -26,6 +26,12 @@ inline std::string tolower(const std::string & str)
     return data;
 }
 
+template<typename T>
+T parse_enum(const std::string & str)
+{
+    throw std::runtime_error("Not implemented.");
+}
+
 // expansion macro for enum value definition
 #define ENUM_VALUE(EnumType, name,assign) name assign,
 
@@ -41,7 +47,9 @@ inline std::string tolower(const std::string & str)
     ENUM_DEF(EnumType, ENUM_VALUE) \
   }; \
   std::string to_string(EnumType dummy); \
-  EnumType parse_##EnumType##_value  (const std::string & str); \
+template<> \
+  EnumType parse_enum<EnumType>(const std::string & str); \
+
 
 /// define the access function names
 #define DEFINE_ENUM(EnumType,ENUM_DEF) \
@@ -53,7 +61,8 @@ inline std::string tolower(const std::string & str)
       default: return ""; /* handle input error */ \
     } \
   } \
-  EnumType parse_##EnumType##_value (const std::string& str) \
+template<> \
+  EnumType parse_enum<EnumType>(const std::string & str) \
   { \
     ENUM_DEF(EnumType, ENUM_STRCMP) \
     return (EnumType)0; /* handle input error */ \

@@ -20,7 +20,7 @@ struct Options
     std::string tsv_label;
     std::string tsv_query;
     std::string svm_query;
-    uint32_t default_raw_feature_type;
+    RawFeatureType default_raw_feature_type;
     uint32_t random_seed;
     float_t input_sample_rate;
     float_t base_score;

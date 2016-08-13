@@ -42,7 +42,7 @@ DECLARE_ENUM(Spread, SpreadDefinition)
 struct Options
 {
     uint32_t logging_severity;
-    std::string action;
+    bool train, evaluate;
     std::string input_pipe;
     std::string input_file;
     InputFormat input_format;

@@ -10,7 +10,7 @@ fi
 
 unrar p -inul  $INPUT_FILE  MQ2008/Fold1/train.txt  \
  | $BASE/bin/tealtree \
- --action train \
+ --train \
  --input_format svm \
  --bucket_max_bits 8 \
  --cost_function lambda_rank@10 \
@@ -24,7 +24,7 @@ unrar p -inul  $INPUT_FILE  MQ2008/Fold1/train.txt  \
 
  EVAL="$BASE/bin/tealtree \
  --logging_severity 5 \
- --action evaluate \
+ --evaluate \
  --input_format svm \
  --exponentiate_label \
  --metric ndcg@10 \

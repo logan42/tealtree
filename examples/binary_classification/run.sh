@@ -3,7 +3,7 @@
 BASE=../..
 
 $BASE/bin/tealtree \
- --action train \
+ --train \
  --input_file agaricus.txt.train \
  --input_format svm \
  --feature_names_file feature_names.txt \
@@ -18,7 +18,7 @@ $BASE/bin/tealtree \
 echo "Evaluating on training data:"
 $BASE/bin/tealtree \
  --logging_severity 5 \
- --action evaluate \
+ --evaluate \
  --input_file agaricus.txt.train \
  --input_format svm \
  --input_tree forest.json
@@ -26,7 +26,7 @@ $BASE/bin/tealtree \
 echo "Evaluating on testing data:"
 $BASE/bin/tealtree \
  --logging_severity 5 \
- --action evaluate \
+ --evaluate \
  --input_file agaricus.txt.test \
  --input_format svm \
  --input_tree forest.json \

@@ -72,11 +72,11 @@ Workflow::Workflow(Options & options) : options(options)
 void Workflow::run()
 {
     this->init();
-    if (this->options.action == "train") {
+    if (this->options.train) {
         this->run_train();
         return;
     }
-    if (this->options.action == "evaluate") {
+    if (this->options.evaluate) {
         this->run_evaluate();
         return;
     }

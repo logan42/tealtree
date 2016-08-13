@@ -115,7 +115,9 @@ void parse_options(int argc, const char * argv[])
     TCLAP::CmdLine cmd("TealTree gradient boosting decision tree toolkit", ' ', "0.9");
 
     TN logging_severity_arg("", "logging_severity", "Minimum severity of logging messages; 0=TRACE, 1=DEBUG, 2=INFO, etc.", false, 2, "size_t", cmd);
-    TS action_arg("", "action", "Action to perform", true, "", "string", cmd);
+    TB train_switch("", "train", "Train a model.", false);
+    TB evaluate_switch("", "evaluate", "Evaluate a model.", false);
+    cmd.xorAdd(train_switch, evaluate_switch);
     TS input_pipe_arg("", "input_pipe", "Command that produces the input file. The output of this command will be read as input data.", false, "", "string", cmd);
     TS input_file_arg("", "input_file", "Input file to read data from.", false, "", "string", cmd);
     auto input_format_allowed = get_enum_values<InputFormat>();
@@ -173,7 +175,8 @@ void parse_options(int argc, const char * argv[])
     cmd.parse(argc, argv);
 
     options.logging_severity = logging_severity_arg.getValue();
-    options.action = action_arg.getValue();
+    options.train = train_switch.getValue();
+    options.evaluate = evaluate_switch.getValue();
     options.input_pipe = input_pipe_arg.getValue();
     options.input_file = input_file_arg.getValue();
     options.input_format = parse_enum<InputFormat>(input_format_arg.getValue());
@@ -215,7 +218,7 @@ void parse_options(int argc, const char * argv[])
     desc.add_options()
         ("help", "Print help messages")
         ("logging_severity", po::value<uint32_t>(&options.logging_severity)->default_value((uint32_t)2), "Minimum severity of logging messages. 0=TRACE, 1=DEBUG, 2=INFO, etc.")
-        ("action", po::value<std::string>(&options.action), "Action to perform. Can be either 'train' or 'evaluate'.")
+        //("action", po::value<std::string>(&options.action), "Action to perform. Can be either 'train' or 'evaluate'.")
         ("input_pipe", po::value<std::string>(&options.input_pipe), "Command that produces pipe to read the input data from. For reading from plain tsv file use 'cat <filename>'.")
         ("input_file", po::value<std::string>(&options.input_file), "Input file to read training data from.")
         //("input_stdin", po::value<bool>(&options.input_stdin), "Read training data from stdin.")
@@ -301,9 +304,6 @@ void validate_options()
         throw po::validation_error(po::validation_error::invalid_option_value, "regularization_lambda must be non-negative.");
     }
 
-    if ((options.action != "train") && (options.action != "evaluate")) {
-        throw po::validation_error(po::validation_error::invalid_option_value, "Invalid action option value.");
-    }
 
     if (options.initial_tail_size < 0) {
         throw po::validation_error(po::validation_error::invalid_option_value, "Option initial_tail_size must be positive.");

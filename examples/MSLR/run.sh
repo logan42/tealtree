@@ -13,7 +13,7 @@ fi
 
 unzip -p $INPUT_FILE Fold1/train.txt \
  | $BASE/bin/tealtree \
- --action train \
+ --train \
  --input_format svm \
  --default_raw_feature_type uint16 \
  --input_sample_rate $SAMPLE_RATE \
@@ -28,7 +28,7 @@ unzip -p $INPUT_FILE Fold1/train.txt \
 
 EVAL="$BASE/bin/tealtree \
  --logging_severity 5 \
- --action evaluate \
+ --evaluate \
  --input_format svm \
  --input_sample_rate $SAMPLE_RATE \
  --exponentiate_label \

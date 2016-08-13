@@ -306,7 +306,7 @@ void Workflow::log_gradient()
         oss << ".";
     }
     BOOST_LOG_TRIVIAL(trace) << "Computed gradients: " << oss.str();
-    if (this->options.step == "newton") {
+    if (this->options.step == Step::newton) {
         oss.clear();
         for (size_t i = 0; i < n; i++) {
             if (i > 0) {
@@ -396,7 +396,7 @@ void Workflow::train_a_tree(uint32_t tree_index)
         }
         assert(children.first->doc_ids.size() > 0);
         assert(children.second->doc_ids.size() > 0);
-        if (this->options.step != "newton") {
+        if (this->options.step != Step::newton) {
             assert(children.first->doc_ids.size() >= this->options.min_node_docs);
             assert(children.second->doc_ids.size() >= this->options.min_node_docs);
         }
@@ -625,7 +625,7 @@ std::unique_ptr<Trainer> Workflow::create_trainer(const std::vector<float_t> * l
 
     trainer->set_thread_pool(this->thread_pool.get());
     TrainerParams params;
-    params.newton_step = this->options.step == "newton";
+    params.newton_step = this->options.step == Step::newton;
     params.quadratic_spread = this->options.quadratic_spread;
     params.regularization_lambda = this->options.regularization_lambda;
     params.min_node_docs = this->options.min_node_docs;

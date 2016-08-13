@@ -24,6 +24,13 @@ XX(T, V2, =2) \
 // enum class SparseFeatureVersion{ ...
 DECLARE_ENUM(SparseFeatureVersion, SparseFeatureVersionDefinition)
 
+#define StepDefinition(T, XX) \
+XX(T, gradient, =0) \
+XX(T, newton, =1) \
+
+// enum class Step{ ...
+DECLARE_ENUM(Step, StepDefinition)
+
 
 struct Options
 {
@@ -49,7 +56,7 @@ struct Options
     SparseFeatureVersion sparse_feature_version;
      uint32_t n_threads;
     std::string cost_function;
-    std::string step;
+    Step step;
     bool exponentiate_label;
     uint32_t n_leaves;
     uint32_t max_depth;

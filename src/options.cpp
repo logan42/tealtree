@@ -145,7 +145,9 @@ void parse_options(int argc, const char * argv[])
     TS sparse_feature_version_arg("", "sparse_feature_version", "Defines which implementation of the sparse features to use.", false, "auto", &sparse_feature_version_con, cmd);
     TN n_threads_arg("", "n_threads", "Number of threads to use for computation", false, 0, "size_t", cmd);
     TS cost_function_arg("", "cost_function", "Cost function and objective to solve. Possible values: regression, binary_classification, lambda_rank@N.", false, "", "string", cmd);
-    TS step_arg("", "step", "Step of gradient descent. Possible values: gradient, newton.", false, "newton", "string", cmd);
+    auto step_allowed = get_enum_values<Step>();
+    TCLAP::ValuesConstraint<std::string> step_con(step_allowed);
+    TS step_arg("", "step", "Step of gradient descent. Possible values: gradient, newton.", false, "newton", &step_con, cmd);
     TB exponentiate_label_switch("", "exponentiate_label", "Performs label = 2^label - 1 transformation. Often used for LambdaRank.", cmd, false);
     TN n_leaves_arg("", "n_leaves", "Number of leaves per tree.", false, 0, "size_t", cmd);
     TN max_depth_arg("", "max_depth", "Maximum depth of a tree in the ensemble. Set to 0 to disable.", false, 0, "size_t", cmd);
@@ -190,7 +192,7 @@ void parse_options(int argc, const char * argv[])
     options.sparse_feature_version = parse_enum<SparseFeatureVersion>(sparse_feature_version_arg.getValue());
     options.n_threads = n_threads_arg.getValue();
     options.cost_function = cost_function_arg.getValue();
-    options.step = step_arg.getValue();
+    options.step = parse_enum<Step>(step_arg.getValue());
     options.exponentiate_label = exponentiate_label_switch.getValue();
     options.n_leaves = n_leaves_arg.getValue();
     options.max_depth = max_depth_arg.getValue();
@@ -234,7 +236,7 @@ void parse_options(int argc, const char * argv[])
         // ("sparse_feature_version", po::value<std::string>(&options.sparse_feature_version)->default_value("auto"), "Defines which implementation of the sparse features to use.")
         ("n_threads", po::value<uint32_t>(&options.n_threads)->default_value(0), "Number of threads.")
         ("cost_function", po::value<std::string>(&options.cost_function), "Cost function and objective to solve. Possible values: regression, binary_classification, lambda_rank.")
-        ("step", po::value<std::string>(&options.step)->default_value("gradient"), "Step of gradient descent. Possible values: gradient, newton.")
+        //("step", po::value<std::string>(&options.step)->default_value("gradient"), "Step of gradient descent. Possible values: gradient, newton.")
         ("exponentiate_label", po::value<bool>(&options.exponentiate_label), "Performs label = 2^label - 1 transformation. Often used for LambdaRank.")
         ("n_leaves", po::value<uint32_t>(&options.n_leaves)->default_value(100), "Number of leaves per tree.")
         ("max_depth", po::value<uint32_t>(&options.max_depth)->default_value(0), "Maximum depth of a tree ijn the ensemble. Set to 0 to disable.")
@@ -289,9 +291,6 @@ void validate_options()
     //    throw po::validation_error(po::validation_error::invalid_option_value, std::string("Invalid value of Option cost_function."));
     //}
 
-    if ((options.step!= std::string("gradient")) && (options.step!= std::string("pseudonewton")) && (options.step!= std::string("newton"))) {
-        throw po::validation_error(po::validation_error::invalid_option_value, std::string("Invalid value of Option step."));
-    }
 
     if ((options.sparsity_threshold > 1.0) || (options.sparsity_threshold < 0)) {
         throw po::validation_error(po::validation_error::invalid_option_value, "sparsity_threshold must be between 0 and 1.");
@@ -314,3 +313,4 @@ void validate_options()
 
 DEFINE_ENUM(InputFormat, InputFormatDefinition)
 DEFINE_ENUM(SparseFeatureVersion, SparseFeatureVersionDefinition)
+DEFINE_ENUM(Step, StepDefinition)

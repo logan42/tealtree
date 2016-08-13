@@ -27,10 +27,10 @@ inline std::string tolower(const std::string & str)
 }
 
 template<typename T>
-T parse_enum(const std::string & str)
-{
-    throw std::runtime_error("Not implemented.");
-}
+T parse_enum(const std::string & str);
+
+template<typename T>
+std::vector<std::string>get_enum_values();
 
 // expansion macro for enum value definition
 #define ENUM_VALUE(EnumType, name,assign) name assign,
@@ -41,6 +41,9 @@ T parse_enum(const std::string & str)
 // expansion macro for string to enum conversion
 #define ENUM_STRCMP(EnumType, name,assign) if (str == tolower(#name)) return EnumType::name;
 
+// expansion macro for getting the list of enum values
+#define ENUM_PUSH_BACK(EnumType, name,assign) result.push_back(tolower(#name));
+
 /// declare the access function and define enum values
 #define DECLARE_ENUM(EnumType,ENUM_DEF) \
   enum class EnumType { \
@@ -49,6 +52,8 @@ T parse_enum(const std::string & str)
   std::string to_string(EnumType dummy); \
 template<> \
   EnumType parse_enum<EnumType>(const std::string & str); \
+template<> \
+std::vector<std::string>get_enum_values<EnumType>(); \
 
 
 /// define the access function names
@@ -67,5 +72,12 @@ template<> \
     ENUM_DEF(EnumType, ENUM_STRCMP) \
     return (EnumType)0; /* handle input error */ \
   } \
+template<> \
+std::vector<std::string>get_enum_values<EnumType>() \
+{ \
+  std::vector<std::string> result; \
+  ENUM_DEF(EnumType, ENUM_PUSH_BACK) \
+return result; \
+} \
 
 #endif /* defined(__tealtree__enum_factory__) */

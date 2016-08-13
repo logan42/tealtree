@@ -125,7 +125,9 @@ void parse_options(int argc, const char * argv[])
     TS tsv_label_arg("", "tsv_label", "The name of the 'Label' column in the input TSV file.", false, "Label", "string", cmd);
     TS tsv_query_arg("", "tsv_query", "The name of the 'Query' column in the input TSV file.", false, "Query", "string", cmd);
     TS svm_query_arg("", "svm_query", "The name of the query_id prefix  in the input SVM file.", false, "qid", "string", cmd);
-    TS default_raw_feature_type_arg("", "default_raw_feature_type", "When parsing a TSV or SVM file, Defines the default type of the feature values to expect.", false, "uint8", "string", cmd);
+    auto default_raw_feature_type_allowed = get_enum_values<RawFeatureType>();
+    TCLAP::ValuesConstraint<std::string> default_raw_feature_type_con(default_raw_feature_type_allowed);
+    TS default_raw_feature_type_arg("", "default_raw_feature_type", "When parsing a TSV or SVM file, Defines the default type of the feature values to expect.", false, "uint8", &default_raw_feature_type_con, cmd);
     TN random_seed_arg("", "random_seed", "Initial seed for random numbers generator. Set to 0 for randomized seed.", false, 1, "size_t", cmd);
     NumericConstraint<float_t> input_sample_rate_con; input_sample_rate_con.set_gte(0)->set_lte(1);
     TF input_sample_rate_arg("", "input_sample_rate", "Subsample only a given fraction of input documents.Useful for testing.", false, 1, &input_sample_rate_con, cmd);

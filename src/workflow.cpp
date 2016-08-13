@@ -200,17 +200,18 @@ void Workflow::init_registries()
 
         FastShardMapping::get_instance().initial_tail_size = this->options.initial_tail_size;
         bool sparse_v1;
-        if (options.sparse_feature_version == "v1") {
-            sparse_v1 = true;
-        }
-        else if (options.sparse_feature_version == "v2") {
-            sparse_v1 = false;
-        }
-        else if (options.sparse_feature_version == "auto") {
+        switch (options.sparse_feature_version) {
+        case SparseFeatureVersion::AUTO:
             sparse_v1 = options.n_leaves < 100;
-        }
-        else {
-            throw std::runtime_error("Option sparse_feature_version has unknown value " + options.sparse_feature_version);
+            break;
+        case SparseFeatureVersion::V1:
+            sparse_v1 = true;
+            break;
+        case SparseFeatureVersion::V2:
+            sparse_v1 = false;
+            break;
+        default:
+            throw std::runtime_error("Unknown value of --sparse_feature_version");
         }
         if (!sparse_v1) {
             BOOST_LOG_TRIVIAL(warning) << "Using sparse features V2.";

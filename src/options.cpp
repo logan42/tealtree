@@ -140,7 +140,9 @@ void parse_options(int argc, const char * argv[])
     TF sparsity_threshold_arg("", "sparsity_threshold", "Feature sparsity threshold. Features that are sparser than this will be encoded in sparse format.", false, (float_t)0.1, &sparsity_threshold_con, cmd);
     NumericConstraint<float_t> initial_tail_size_con; initial_tail_size_con.set_gte(0)->set_lte(1);
     TF initial_tail_size_arg("", "initial_tail_size", "Initial tail size for fast sparse features.", false, (float_t)0.03, &initial_tail_size_con, cmd);
-    TS sparse_feature_version_arg("", "sparse_feature_version", "Defines which implementation of the sparse features to use.", false, "auto", "string", cmd);
+        auto sparse_feature_version_allowed = get_enum_values<SparseFeatureVersion>();
+    TCLAP::ValuesConstraint<std::string> sparse_feature_version_con(sparse_feature_version_allowed);
+    TS sparse_feature_version_arg("", "sparse_feature_version", "Defines which implementation of the sparse features to use.", false, "auto", &sparse_feature_version_con, cmd);
     TN n_threads_arg("", "n_threads", "Number of threads to use for computation", false, 0, "size_t", cmd);
     TS cost_function_arg("", "cost_function", "Cost function and objective to solve. Possible values: regression, binary_classification, lambda_rank@N.", false, "", "string", cmd);
     TS step_arg("", "step", "Step of gradient descent. Possible values: gradient, newton.", false, "newton", "string", cmd);
@@ -185,7 +187,7 @@ void parse_options(int argc, const char * argv[])
     options.bucket_max_bits = bucket_max_bits_arg.getValue();
     options.sparsity_threshold = sparsity_threshold_arg.getValue();
     options.initial_tail_size = initial_tail_size_arg.getValue();
-    options.sparse_feature_version = sparse_feature_version_arg.getValue();
+    options.sparse_feature_version = parse_enum<SparseFeatureVersion>(sparse_feature_version_arg.getValue());
     options.n_threads = n_threads_arg.getValue();
     options.cost_function = cost_function_arg.getValue();
     options.step = step_arg.getValue();
@@ -229,7 +231,7 @@ void parse_options(int argc, const char * argv[])
         ("bucket_max_bits", po::value<uint32_t>(&options.bucket_max_bits)->default_value(12), "Maximum number of bits to bucketize features. Any feature will be bucketized into at most 2^bucket_max_bits values. Possible values: 1..16.")
         ("sparsity_threshold", po::value<float_t>(&options.sparsity_threshold)->default_value((float_t)0.1), "Feature sparsity threshold. Features that are sparser than this will be encoded in sparse format.")
         ("initial_tail_size", po::value<float_t>(&options.initial_tail_size)->default_value((float_t)0.03), "For fast sparse features defines the initial tail size as a percentage of the offsets buffer.")
-        ("sparse_feature_version", po::value<std::string>(&options.sparse_feature_version)->default_value("auto"), "Defines which implementation of the sparse features to use.")
+        // ("sparse_feature_version", po::value<std::string>(&options.sparse_feature_version)->default_value("auto"), "Defines which implementation of the sparse features to use.")
         ("n_threads", po::value<uint32_t>(&options.n_threads)->default_value(0), "Number of threads.")
         ("cost_function", po::value<std::string>(&options.cost_function), "Cost function and objective to solve. Possible values: regression, binary_classification, lambda_rank.")
         ("step", po::value<std::string>(&options.step)->default_value("gradient"), "Step of gradient descent. Possible values: gradient, newton.")
@@ -307,11 +309,8 @@ void validate_options()
         throw po::validation_error(po::validation_error::invalid_option_value, "Option initial_tail_size must be positive.");
     }
 
-    std::vector<std::string> sparse_feature_version_values = {"v1", "v2", "auto"};
-    if (std::find(sparse_feature_version_values.begin(), sparse_feature_version_values.end(), options.sparse_feature_version) == sparse_feature_version_values.end()) {
-        throw po::validation_error(po::validation_error::invalid_option_value, "Option --sparse_feature_version must be one of (v1, v2, auto).");
-    }
 
 }
 
 DEFINE_ENUM(InputFormat, InputFormatDefinition)
+DEFINE_ENUM(SparseFeatureVersion, SparseFeatureVersionDefinition)

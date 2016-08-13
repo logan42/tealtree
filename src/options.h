@@ -16,6 +16,15 @@ XX(T, SVM, =2) \
 DECLARE_ENUM(InputFormat, InputFormatDefinition)
 
 
+#define SparseFeatureVersionDefinition(T, XX) \
+XX(T, AUTO, =0) \
+XX(T, V1, =1) \
+XX(T, V2, =2) \
+
+// enum class SparseFeatureVersion{ ...
+DECLARE_ENUM(SparseFeatureVersion, SparseFeatureVersionDefinition)
+
+
 struct Options
 {
     uint32_t logging_severity;
@@ -37,7 +46,7 @@ struct Options
     uint32_t bucket_max_bits;
     float_t sparsity_threshold;
     float_t initial_tail_size;
-    std::string sparse_feature_version;
+    SparseFeatureVersion sparse_feature_version;
      uint32_t n_threads;
     std::string cost_function;
     std::string step;

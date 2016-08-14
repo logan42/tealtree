@@ -1,14 +1,10 @@
 #ifndef __tealtree__BlockingQueue__
 #define __tealtree__BlockingQueue__
 
-#include <boost/circular_buffer.hpp>
-#include <boost/version.hpp>
 #include <condition_variable>
 #include <mutex>
 
-#if ((BOOST_VERSION) < 105900)
-#error Boost libraries 1.59 or newer is required.
-#endif
+#include "circular_buffer.h"
 
 struct operation_aborted {};
 
@@ -43,7 +39,7 @@ public:
         cv_push_.notify_all();
     }
 private:
-    boost::circular_buffer<value_type> q_;
+    circular_buffer<value_type> q_;
     bool aborted_;
     std::mutex mtx_;
     std::condition_variable cv_push_;

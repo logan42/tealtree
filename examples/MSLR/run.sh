@@ -1,7 +1,9 @@
 #!/bin/bash
 
 BASE=../..
-INPUT_FILE=MSLR-WEB30K.zip
+#INPUT_FILE=MSLR-WEB30K.zip
+INPUT_FILE=/Users/alex/data/ml3/MSLR-WEB30K.zip
+
 FEATURE_NAMES_FILE=feature_names.txt
 
 SAMPLE_RATE=${1:-1.0}

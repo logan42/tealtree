@@ -17,7 +17,6 @@ $BASE/bin/tealtree \
 
 echo "Evaluating on training data:"
 $BASE/bin/tealtree \
- --logging_severity 5 \
  --evaluate \
  --input_file agaricus.txt.train \
  --input_format svm \
@@ -25,7 +24,6 @@ $BASE/bin/tealtree \
 
 echo "Evaluating on testing data:"
 $BASE/bin/tealtree \
- --logging_severity 5 \
  --evaluate \
  --input_file agaricus.txt.test \
  --input_format svm \

@@ -8,6 +8,20 @@
 #include "enum_factory.h"
 #include "types.h"
 
+
+#define SpdLogLevelDefinition(T, XX) \
+XX(T, trace, =0) \
+XX(T, debug, =1) \
+XX(T, info, =2) \
+XX(T, warn, =3) \
+XX(T, err, =4) \
+XX(T, critical, =5) \
+XX(T, off, =6) \
+
+// enum class SpdLogLevel{ ...
+DECLARE_ENUM(SpdLogLevel, SpdLogLevelDefinition)
+
+
 #define InputFormatDefinition(T, XX) \
 XX(T, TSV , =1) \
 XX(T, SVM, =2) \
@@ -41,7 +55,6 @@ DECLARE_ENUM(Spread, SpreadDefinition)
 
 struct Options
 {
-    uint32_t logging_severity;
     bool train, evaluate;
     std::string input_pipe;
     std::string input_file;

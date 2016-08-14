@@ -133,18 +133,14 @@ public:
             }
             void report_exception(const std::string & exception_name, std::exception & e, const char * value, DOC_ID doc_id)
             {
-                BOOST_LOG_TRIVIAL(fatal) << "Exception " << exception_name << " was thrown while trying to parse"
-                    << " value='" << value
-                    << "' as type " << this->metadata.get_type()
-                    << " doc_id=" << doc_id
-                    << " feature=" << this->metadata.get_name();
-                BOOST_LOG_TRIVIAL(fatal)
-                    << "This can sometimes happen if a particular feature in the training data fits for example into an 8-bit integer, "
-                    << "but in the testing data it happens to have a larger value, causing an overflow.";
-                BOOST_LOG_TRIVIAL(fatal)
-                    << "You can work around this by setting option --default_raw_feature_type to a higher value during training, "
-                    << "or alternatively, you can edit the ensemble json file and manually change the type "
-                    << "of the affected feature to a larger size integer type.";
+                logger->critical("Exception {} was thrown while trying to parse"
+                    " value='{}' as type {}, doc_id={}, feature={}",
+                    exception_name, value, this->metadata.get_type(), doc_id, this->metadata.get_name());
+                logger->critical("This can sometimes happen if a particular feature in the training data fits for example into an 8-bit integer, "
+                    "but in the testing data it happens to have a larger value, causing an overflow.");
+                logger->critical("You can work around this by setting option --default_raw_feature_type to a higher value during training, "
+                    "or alternatively, you can edit the ensemble json file and manually change the type "
+                    "of the affected feature to a larger size integer type.");
                 throw e;
             }
                         virtual void set_name(const char * name)

@@ -1,9 +1,10 @@
 #ifndef tealtree_log_trivial_h
 #define tealtree_log_trivial_h
 
-//#pragma GCC diagnostic push
-//#pragma GCC diagnostic ignored "-Wshorten-64-to-32"
-#include <boost/log/trivial.hpp>
-//#pragma GCC diagnostic pop
+#include <spdlog/spdlog.h>
 
+extern std::shared_ptr<spdlog::logger> logger;
+
+void init_logger();
+void destroy_logger();
 #endif

@@ -291,9 +291,10 @@ inline void FastSparseFeatureImpl <BITS>::resize_offsets(DOC_ID shortage)
     this->offsets.resize(this->offsets.size() + shortage);
     this->shards[FastShardMapping::FINAL_FAKE_SHARD].o_ptr += shortage;
     this->shards[map->previous_shard[FastShardMapping::FINAL_FAKE_SHARD]].tail += shortage;
-        BOOST_LOG_TRIVIAL(warning)
-        << "Resizing offsets buffer for feature '" << this->get_name()
-        << "'. If this message appears often, consider increasing --initial_tail_size flag value.";
+        logger->warn(
+        "Resizing offsets buffer for feature '{}'. "
+        "If this message appears often, consider increasing --initial_tail_size flag value.",
+            this->get_name());
 }
 
 template<const uint8_t BITS>

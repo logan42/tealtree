@@ -18,7 +18,6 @@ set BASE=..\..
 
 echo Evaluating on training data:
 %BASE%\bin\tealtree ^
- --logging_severity 5 ^
  --evaluate ^
  --input_file agaricus.txt.train ^
  --input_format svm ^
@@ -26,7 +25,6 @@ echo Evaluating on training data:
 
 echo Evaluating on testing data:
 %BASE%\bin\tealtree ^
- --logging_severity 5 ^
  --evaluate ^
  --input_file agaricus.txt.test ^
  --input_format svm ^

@@ -23,7 +23,6 @@ unrar p -inul  $INPUT_FILE  MQ2008/Fold1/train.txt  \
 
 
  EVAL="$BASE/bin/tealtree \
- --logging_severity 5 \
  --evaluate \
  --input_format svm \
  --exponentiate_label \

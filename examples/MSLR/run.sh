@@ -27,7 +27,6 @@ unzip -p $INPUT_FILE Fold1/train.txt \
  
 
 EVAL="$BASE/bin/tealtree \
- --logging_severity 5 \
  --evaluate \
  --input_format svm \
  --input_sample_rate $SAMPLE_RATE \

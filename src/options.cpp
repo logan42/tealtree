@@ -1,5 +1,6 @@
 #include "options.h"
 
+#include "log_trivial.h"
 #include "util.h"
 
 #include <algorithm>
@@ -119,7 +120,9 @@ void parse_options(int argc, const char * argv[])
 
     TCLAP::CmdLine cmd("TealTree gradient boosting decision tree toolkit", ' ', "0.9");
 
-    TN logging_severity_arg("", "logging_severity", "Minimum severity of logging messages; 0=TRACE, 1=DEBUG, 2=INFO, etc.", false, 2, "size_t", cmd);
+    auto log_level_allowed = get_enum_values<SpdLogLevel>();
+    TCLAP::ValuesConstraint<std::string> log_level_con(log_level_allowed);
+    TS log_level_arg("", "log_level", "The amount of logging messages.", false, "info", &log_level_con, cmd);
     TB train_switch("", "train", "Train a model.", false);
     TB evaluate_switch("", "evaluate", "Evaluate a model.", false);
     cmd.xorAdd(train_switch, evaluate_switch);
@@ -180,6 +183,9 @@ void parse_options(int argc, const char * argv[])
 
     cmd.parse(argc, argv);
 
+    SpdLogLevel log_level = log_level_arg.isSet() ? parse_enum<SpdLogLevel>(log_level_arg.getValue())
+        : (evaluate_switch.getValue() ? SpdLogLevel::off : SpdLogLevel::info);
+    spdlog::set_level((spdlog::level::level_enum)log_level);
     if (train_switch.getValue()) {
         flag_assert(output_tree_arg.isSet(), "--output_tree must be set");
         flag_assert(n_trees_arg.isSet(), "--n_trees must be set");
@@ -189,7 +195,6 @@ void parse_options(int argc, const char * argv[])
         flag_assert(input_tree_arg.isSet(), "--input_tree must be set");
     }
 
-    options.logging_severity = logging_severity_arg.getValue();
     options.train = train_switch.getValue();
     options.evaluate = evaluate_switch.getValue();
     options.input_pipe = input_pipe_arg.getValue();
@@ -233,3 +238,4 @@ DEFINE_ENUM(InputFormat, InputFormatDefinition)
 DEFINE_ENUM(SparseFeatureVersion, SparseFeatureVersionDefinition)
 DEFINE_ENUM(Step, StepDefinition)
 DEFINE_ENUM(Spread, SpreadDefinition)
+DEFINE_ENUM(SpdLogLevel, SpdLogLevelDefinition)

@@ -17,7 +17,6 @@ $BASE/bin/tealtree \
 
 echo "Evaluating on training data:"
 $BASE/bin/tealtree \
- --logging_severity 5 \
  --evaluate \
  --input_file machine.txt.train \
  --input_format svm \
@@ -31,7 +30,6 @@ python $BASE/tools/evaluate.py \
 
 echo "Evaluating on testing data:"
 $BASE/bin/tealtree \
- --logging_severity 5 \
  --evaluate \
  --input_file machine.txt.test \
  --input_format svm \

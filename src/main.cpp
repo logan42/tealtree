@@ -1,6 +1,7 @@
 #include "cost_function.h"
 #include "feature.h"
 #include "line_reader.h"
+#include "log_trivial.h"
 #include "options.h"
 #include "raw_feature_histogram.h"
 #include "regression_cost_function.h"
@@ -12,11 +13,12 @@
 
 int main(int argc, const char * argv[]) 
 {
-#ifdef _WIN32
     try {
+        init_logger();
         parse_options(argc, argv);
         Workflow workflow(options);
         workflow.run();
+        destroy_logger();
     }
     catch (const std::exception & ex) {
         std::cerr << "TealTree failed with exception:" << std::endl;
@@ -24,10 +26,5 @@ int main(int argc, const char * argv[])
         std::cerr.flush();
         exit(1);
     }
-#else
-    parse_options(argc, argv);
-    Workflow workflow(options);
-    workflow.run();
-#endif
     return 0;
 }

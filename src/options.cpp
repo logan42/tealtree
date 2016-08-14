@@ -185,7 +185,7 @@ void parse_options(int argc, const char * argv[])
     cmd.parse(argc, argv);
 
     SpdLogLevel log_level = log_level_arg.isSet() ? parse_enum<SpdLogLevel>(log_level_arg.getValue())
-        : (evaluate_switch.getValue() ? SpdLogLevel::off : SpdLogLevel::info);
+        : (evaluate_switch.getValue() ? SpdLogLevel::warn : SpdLogLevel::info);
     spdlog::set_level((spdlog::level::level_enum)log_level);
     std::string timestamp_pattern = log_timestamp_switch.getValue() ? "[%H:%M:%S.%e] " : "";
     spdlog::set_pattern(timestamp_pattern + "%v");

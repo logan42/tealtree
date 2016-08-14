@@ -18,13 +18,14 @@ int main(int argc, const char * argv[])
         parse_options(argc, argv);
         Workflow workflow(options);
         workflow.run();
-        destroy_logger();
     }
     catch (const std::exception & ex) {
         std::cerr << "TealTree failed with exception:" << std::endl;
         std::cerr << ex.what() << std::endl;
         std::cerr.flush();
+        destroy_logger();
         exit(1);
     }
+    destroy_logger();
     return 0;
 }

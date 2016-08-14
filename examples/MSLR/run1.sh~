@@ -39,6 +39,11 @@ unzip -p $INPUT_FILE Fold1/train.txt  | $EVAL \
  --output_predictions pred_train.txt \
  --output_epochs epochs_train.txt
 
+echo "Evaluating on validation data:"
+unzip -p $INPUT_FILE Fold1/vali.txt  | $EVAL \
+ --output_predictions pred_vali.txt \
+ --output_epochs epochs_vali.txt
+
  echo "Evaluating on testing data:"
 unzip -p $INPUT_FILE Fold1/test.txt  | $EVAL \
  --output_predictions pred_test.txt \

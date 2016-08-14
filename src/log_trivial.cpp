@@ -6,7 +6,7 @@ namespace spd = spdlog;
 
 void init_logger()
 {
-    spdlog::set_async_mode(4096);
+    //spdlog::set_async_mode(4096);
     logger = spd::stderr_logger_mt("console", false);
     
 }

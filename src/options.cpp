@@ -123,6 +123,7 @@ void parse_options(int argc, const char * argv[])
     auto log_level_allowed = get_enum_values<SpdLogLevel>();
     TCLAP::ValuesConstraint<std::string> log_level_con(log_level_allowed);
     TS log_level_arg("", "log_level", "The amount of logging messages.", false, "info", &log_level_con, cmd);
+    TB log_timestamp_switch("", "log_timestamp", "Print timestamp in every line.", cmd, false);
     TB train_switch("", "train", "Train a model.", false);
     TB evaluate_switch("", "evaluate", "Evaluate a model.", false);
     cmd.xorAdd(train_switch, evaluate_switch);
@@ -186,6 +187,8 @@ void parse_options(int argc, const char * argv[])
     SpdLogLevel log_level = log_level_arg.isSet() ? parse_enum<SpdLogLevel>(log_level_arg.getValue())
         : (evaluate_switch.getValue() ? SpdLogLevel::off : SpdLogLevel::info);
     spdlog::set_level((spdlog::level::level_enum)log_level);
+    std::string timestamp_pattern = log_timestamp_switch.getValue() ? "[%H:%M:%S.%e] " : "";
+    spdlog::set_pattern(timestamp_pattern + "%v");
     if (train_switch.getValue()) {
         flag_assert(output_tree_arg.isSet(), "--output_tree must be set");
         flag_assert(n_trees_arg.isSet(), "--n_trees must be set");

@@ -1,3 +1,11 @@
+// This file differs from the original file, that can be found at:
+// https://github.com/progschj/ThreadPool
+// This file was modified to support limited input queue of tasks to execute.
+// If a thread is trying to submit a new task when the queue is full, 
+// then it will be blocked until a lot in the queue is freed up
+// by a worker thread.
+// The size of the input queue equals to the number of worker threads in the thread pool.
+
 #ifndef THREAD_POOL_H
 #define THREAD_POOL_H
 
@@ -27,6 +35,9 @@ private:
     // synchronization
     std::mutex queue_mutex;
     std::condition_variable condition;
+    // This condition triggers when a task is pulled from the queue to be executed by a worker thread,
+    // thus freeing up space in the queue for potentially waiting enqueue() threads.
+    std::condition_variable enqueue_condition;
     bool stop;
 };
  
@@ -50,6 +61,7 @@ inline ThreadPool::ThreadPool(size_t threads)
                             return;
                         task = std::move(this->tasks.front());
                         this->tasks.pop();
+                        this->enqueue_condition.notify_one();
                     }
 
                     task();
@@ -72,6 +84,8 @@ auto ThreadPool::enqueue(F&& f, Args&&... args)
     std::future<return_type> res = task->get_future();
     {
         std::unique_lock<std::mutex> lock(queue_mutex);
+        this->enqueue_condition.wait(lock,
+            [this] { return this->stop || this->tasks.size() < this->workers.size(); });
 
         // don't allow enqueueing after stopping the pool
         if(stop)
@@ -91,6 +105,7 @@ inline ThreadPool::~ThreadPool()
         stop = true;
     }
     condition.notify_all();
+    enqueue_condition.notify_all();
     for(std::thread &worker: workers)
         worker.join();
 }

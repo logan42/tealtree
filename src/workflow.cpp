@@ -225,6 +225,7 @@ void Workflow::init()
     this->init_registries();
     uint32_t concurrency = this->get_concurrency();
     this->thread_pool = std::unique_ptr<boost::threadpool::pool>(new boost::threadpool::pool(concurrency));
+    this->thread_pool_2 = std::unique_ptr<ThreadPool>(new ThreadPool(concurrency));
     logger->info("Thread pool initialized with {} threads.", concurrency);
     if (this->options.random_seed == 0) {
         std::random_device rd;
@@ -561,7 +562,28 @@ Workflow::FEATURE_PIPELINE_PTR_TYPE  Workflow::cook_features(std::vector<std::un
     size_t n_features = drfs.size();
     FEATURE_PIPELINE_PTR_TYPE bbq(new FEATURE_PIPELINE_TYPE(this->get_bbq_size()));
     auto tp = this->get_thread_pool();
+    ThreadPool * tp2 = this->thread_pool_2.get();
+    std::future<size_t> f = tp2->enqueue(
+        []() {
+        return (size_t)42;
+    }
+        );
     
+    async_fill_pipeline(bbq,
+        [this, n_features, drfs = std::move(drfs), bbq, tp, tp2]() mutable {
+        for (size_t i = 0; i < n_features; i++) {
+            std::unique_ptr<DynamicRawFeature> drf = std::move(drfs[i]);
+            bbq->push(tp2->enqueue(make_copyable_function<std::unique_ptr<Feature>()>(
+                [this, drf = std::move(drf)]() mutable {
+                return this->cook_feature(std::move(drf));
+            })));
+        }
+        // End of pipeline marker:
+        std::promise<std::unique_ptr<Feature>> promise;
+        bbq->push(promise.get_future());
+        promise.set_value(nullptr);
+    });
+    /*
     std::thread starter_thread(
         [this, n_features, drfs = std::move(drfs), bbq, tp]()mutable {
         for (size_t i = 0; i < n_features; i++) {
@@ -579,12 +601,6 @@ Workflow::FEATURE_PIPELINE_PTR_TYPE  Workflow::cook_features(std::vector<std::un
                     promise.set_exception(std::current_exception());
                 }
             });
-            /*
-            // My threadpool sucks, I wish it supported packaged tasks
-            std::packaged_task<std::unique_ptr<Feature>()> task(function);
-            std::future<std::unique_ptr<Feature>> future = task.get_future();
-            bbq->push(std::move(future));
-            */
             tp->schedule(function);
         }
         std::promise<std::unique_ptr<Feature>> promise;
@@ -592,7 +608,7 @@ Workflow::FEATURE_PIPELINE_PTR_TYPE  Workflow::cook_features(std::vector<std::un
         promise.set_value(nullptr);
     });
 starter_thread.detach();
-
+*/
 return bbq;
 }
 

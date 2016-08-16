@@ -8,5 +8,6 @@
 // We can use BlockingBoundedQueue instaed as a container for waiting tasks.
 // Also boost threadpool seems to be dead as a project.
 #include "boost/threadpool.hpp"
+#include <ThreadPool.h>
 
 #endif /* defined(__tealtree__thread_pool__) */

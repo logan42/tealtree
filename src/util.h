@@ -8,6 +8,7 @@
 #include <sstream>
 #include <vector>
 
+#include "log_trivial.h"
 #include "types.h"
 
 // Static / global variable exists in a per - thread context(thread local storage).
@@ -210,6 +211,25 @@ template< typename signature, typename input >
 std::function<signature> make_copyable_function(input && i) {
     return make_copyable_function_helper<signature>()(std::forward<input>(i));
 }
+
+
+template <class P, class F>
+inline void async_fill_pipeline(P p, F && f)
+{
+    std::thread generator_thread(
+        [p, f = std::move(f)]()mutable {
+        try {
+            f();
+        }
+        catch (const std::exception & ex) {
+            logger->critical("Pipeline generator thread failed with an exception: {}.", ex.what());
+            p->abort();
+        }
+    });
+    generator_thread.detach();
+}
+
+
 
 extern std::vector<float_t> DCG_cache;
 

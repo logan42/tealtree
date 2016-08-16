@@ -34,6 +34,7 @@ class Workflow
 private:
     Options & options;
     std::unique_ptr<boost::threadpool::pool> thread_pool;
+    std::unique_ptr<ThreadPool> thread_pool_2;
     std::unique_ptr<std::mt19937 > random_engine;
     std::unique_ptr<Trainer> trainer;
     std::unique_ptr<CostFunction> cost_function;

@@ -19,7 +19,7 @@ public:
     {};
     virtual void precompute(TrainerData * trainer_data) {}
     virtual void compute_gradient(TrainerData * trainer_data, bool newton_step) = 0;
-    virtual void compute_gradient(TrainerData * trainer_data, bool newton_step, boost::threadpool::pool* tp)
+    virtual void compute_gradient(TrainerData * trainer_data, bool newton_step, ThreadPool * tp)
     {
         this->compute_gradient(trainer_data, newton_step);
     }

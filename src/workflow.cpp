@@ -563,17 +563,12 @@ Workflow::FEATURE_PIPELINE_PTR_TYPE  Workflow::cook_features(std::vector<std::un
     FEATURE_PIPELINE_PTR_TYPE bbq(new FEATURE_PIPELINE_TYPE(this->get_bbq_size()));
     auto tp = this->get_thread_pool();
     ThreadPool * tp2 = this->thread_pool_2.get();
-    std::future<size_t> f = tp2->enqueue(
-        []() {
-        return (size_t)42;
-    }
-        );
     
     async_fill_pipeline(bbq,
         [this, n_features, drfs = std::move(drfs), bbq, tp, tp2]() mutable {
         for (size_t i = 0; i < n_features; i++) {
             std::unique_ptr<DynamicRawFeature> drf = std::move(drfs[i]);
-            bbq->push(tp2->enqueue(make_copyable_function<std::unique_ptr<Feature>()>(
+            bbq->push(tp2->enqueue(true, make_copyable_function<std::unique_ptr<Feature>()>(
                 [this, drf = std::move(drf)]() mutable {
                 return this->cook_feature(std::move(drf));
             })));
@@ -630,7 +625,7 @@ std::unique_ptr<Trainer> Workflow::create_trainer(const std::vector<float_t> * l
     this->log_feature_types(feature_types, 'd', "Dense features encodings: ");
     this->log_feature_types(feature_types, 's', "Sparse features encodings: ");
 
-    trainer->set_thread_pool(this->thread_pool.get());
+    trainer->set_thread_pool(this->thread_pool_2.get());
     TrainerParams params;
     params.newton_step = this->options.step == Step::newton;
     params.quadratic_spread = this->options.spread == Spread::quadratic;

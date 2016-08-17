@@ -3,7 +3,7 @@
 mkdir bin 2>/dev/null
 rm -rf bin/tealtree* 2>/dev/null
 
-clang++ -Ofast -std=c++14 \
+clang++ -Ofast -flto -std=c++14 \
  -DBOOST_LOG_DYN_LINK \
  -DNDEBUG \
  -DGHEAP_CPP11 \

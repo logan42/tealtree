@@ -31,7 +31,7 @@ private:
     TrainerData data;
     std::vector<std::unique_ptr<Feature>> features;
     std::mutex mutex;
-    boost::threadpool::pool * tp;
+    ThreadPool * tp;
     std::unique_ptr<CostFunction> cost_function;
     TrainerParams params;
 public:
@@ -42,7 +42,7 @@ public:
     Feature * get_feature(size_t feature_id);
     size_t get_features_count();
     void set_cost_function(std::unique_ptr<CostFunction> cost_function);
-    void set_thread_pool(boost::threadpool::pool * tp);
+    void set_thread_pool(ThreadPool * tp);
     void set_parameters(const TrainerParams & params);
     void start_ensemble();
     void start_new_tree();
@@ -53,7 +53,7 @@ public:
     void finalize_tree(float_t step_alpha);
     void clear_tree();
 private:
-    void compute_histogram_feature(TreeNode * node, TreeNode * sibling, Feature * feature);
+    std::pair<Split, Split> compute_histogram_feature(TreeNode * node, TreeNode * sibling, Feature * feature);
     inline std::pair<float_t, uint32_t> find_best_split_feature(Histogram * hist, TreeNode * node, Feature * feature);
     template<const bool NEWTON_STEP>
     std::pair<float_t, uint32_t> find_best_split_feature_impl(Histogram * hist, TreeNode * node, Feature * feature);

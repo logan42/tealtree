@@ -21,7 +21,20 @@ struct Split {
     // If the split is inverse then documents < threshold go to the right node.
     bool inverse;
     
-    Split() : spread(-1), feature(NULL), node(NULL), threshold(0), inverse(false) { };
+    Split()
+        : spread(-1),
+        feature(NULL),
+        node(NULL),
+        threshold(0),
+        inverse(false)
+    { };
+    Split(float_t spread, UNIVERSAL_BUCKET threshold, TreeNode * node, Feature* feature, bool inverse = false)
+        : spread(spread),
+        feature(feature),
+        node(node),
+        threshold(threshold),
+        inverse(inverse)
+    { };
     Split(const Split & other) = default;
 };
 

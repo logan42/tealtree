@@ -53,7 +53,7 @@ void Trainer::set_cost_function(std::unique_ptr<CostFunction> cost_function)
     this->cost_function = std::move(cost_function);
 }
 
-void Trainer::set_thread_pool(boost::threadpool::pool * tp)
+void Trainer::set_thread_pool(ThreadPool * tp)
 {
     this->tp = tp;
 }
@@ -84,7 +84,7 @@ void Trainer::start_new_tree()
 }
 
 
-void Trainer::compute_histogram_feature(TreeNode * node, TreeNode * sibling, Feature * feature)
+std::pair<Split, Split> Trainer::compute_histogram_feature(TreeNode * node, TreeNode * sibling, Feature * feature)
 {
     std::unique_ptr<Histogram> hist = feature->compute_histogram(node, this->params.newton_step);
     Histogram * sibling_hist = nullptr;
@@ -94,31 +94,21 @@ void Trainer::compute_histogram_feature(TreeNode * node, TreeNode * sibling, Fea
     if (sibling != NULL) {
         // Reading a vector element that is not being written by any other thread..
         // We can do that without any locks.
-        sibling_hist = (*sibling->histograms)[feature->get_index()].get();
+         sibling_hist = (*sibling->histograms)[feature->get_index()].get();
         sibling_hist->subtract(*hist, this->params.newton_step);
         best_split_sibling = this->find_best_split_feature(sibling_hist, sibling, feature);
     }
     
+    std::pair<Split, Split> result;
+    result.first = Split(best_split.first, best_split.second, node, feature, false);
+    if (sibling != nullptr) {
+        result.second= Split(best_split_sibling.first, best_split_sibling.second, sibling, feature, false);
+    }
     {
         std::lock_guard<std::mutex> guard(this->mutex);
         (*node->histograms)[feature->get_index()] = std::move(hist);
-        if (best_split.first > node->split->spread) {
-            node->split->spread = best_split.first;
-            node->split->threshold = best_split.second;
-            node->split->feature = feature;
-            node->split->node = node;
-            node->split->inverse = false;
-        }
-        if (sibling != NULL) {
-            if (best_split_sibling.first > sibling->split->spread) {
-                sibling->split->spread = best_split_sibling.first;
-                sibling->split->threshold = best_split_sibling.second;
-                sibling->split->feature = feature;
-                sibling->split->node = sibling;
-                sibling->split->inverse = false;
-            }
-        }
     }
+    return result;
 }
 
 inline std::pair<float_t, uint32_t> Trainer::find_best_split_feature(Histogram * hist, TreeNode * node, Feature * feature)
@@ -230,12 +220,23 @@ void Trainer::compute_histograms(TreeNode * node, TreeNode * sibling, std::uniqu
             sibling->sum_hessian= node->parent->sum_hessian - node->sum_hessian;
         }
     }
-    
+    std::vector<std::future<std::pair<Split, Split>>> futures;
+    futures.reserve(this->features.size());
     for (size_t i = 0; i < this->features.size(); i++) {
         Feature * feature = this->features[i].get();
-        this->tp->schedule(boost::bind(&Trainer::compute_histogram_feature, this, node, sibling, feature));
+        futures.push_back(this->tp->enqueue(false, &Trainer::compute_histogram_feature, this, node, sibling, feature));
     }
-    this->tp->wait();
+    for (size_t i = 0; i < this->features.size(); i++) {
+        std::pair<Split, Split> pair = futures[i].get();
+        if (pair.first.spread > node->split->spread) {
+            *node->split = pair.first;
+        }
+        if (sibling != nullptr){
+            if (pair.second.spread > sibling->split->spread) {
+                *sibling->split = pair.second;
+            }
+        }
+    }
     if (sibling != nullptr) {
         TreeNode * parent = node->parent;
         parent->split_signature.reset();
@@ -307,21 +308,21 @@ void Trainer::set_base_score(float_t base_score)
 
 void Trainer::finalize_tree(float_t step_alpha)
 {
+    std::vector<std::unique_ptr<TreeNode>> & nodes = this->data.current_tree->get_nodes();
+    std::vector<std::future<void>> futures;
+    futures.reserve(this->features.size() + nodes.size());
     for (size_t i = 0; i < this->features.size(); i++) {
         Feature * feature = this->features[i].get();
-        this->tp->schedule(
-            [feature]() {
-            feature->on_finalize_tree();
-        });
+        futures.push_back(this->tp->enqueue(false, &Feature::on_finalize_tree, feature));
     }
-    std::vector<std::unique_ptr<TreeNode>> & nodes = this->data.current_tree->get_nodes();
     for (size_t i = 0; i < nodes.size(); i++) {
         if (nodes[i]->is_leaf()) {
-            this->tp->schedule(boost::bind(&Trainer::finalize_node, this, step_alpha, nodes[i].get()));
+            futures.push_back(this->tp->enqueue(false, &Trainer::finalize_node, this, step_alpha, nodes[i].get()));
         }
-
     }
-    tp->wait();
+    for (size_t i = 0; i < futures.size(); i++) {
+        futures[i].get();
+    }
     FastShardMapping::get_instance().on_finalize_tree();
 }
 

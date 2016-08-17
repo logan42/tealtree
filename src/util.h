@@ -22,7 +22,9 @@
 
 struct number_format_error: public std::runtime_error
 {
-    using runtime_error::runtime_error;
+    number_format_error(const std::string & msg)
+        : std::runtime_error(msg)
+    {}
 };
 
 inline bool tt_is_space(char c)

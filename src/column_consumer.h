@@ -1,6 +1,7 @@
 #ifndef tealtree_column_consumer_h
 #define tealtree_column_consumer_h
 
+#include <stdexcept>
 #include <string.h>
 
 #include "types.h"

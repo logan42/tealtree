@@ -127,7 +127,7 @@ void Workflow::run_evaluate()
     }
 
     EVALUATED_ROW_PIPELINE_PTR_TYPE evaluated_pipe = std::shared_ptr<EVALUATED_ROW_PIPELINE_TYPE>(new EVALUATED_ROW_PIPELINE_TYPE(this->get_bbq_size()));
-    Evaluator evaluator(ensemble.get(), input_pipe, evaluated_pipe, this->get_thread_pool(), epochs != nullptr);
+    Evaluator evaluator(ensemble.get(), input_pipe, evaluated_pipe, this->thread_pool_2.get(), epochs != nullptr);
     evaluator.evaluate_all();
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 

@@ -225,6 +225,10 @@ inline void async_fill_pipeline(P p, F && f)
             logger->critical("Pipeline generator thread failed with an exception: {}.", ex.what());
             p->abort();
         }
+        catch (...) {
+            logger->critical("Pipeline generator thread failed with an unknown exception.");
+            p->abort();
+        }
     });
     generator_thread.detach();
 }

@@ -176,11 +176,11 @@ private:
     Ensemble * ensemble;
     INPUT_ROW_PIPELINE_PTR_TYPE input;
     EVALUATED_ROW_PIPELINE_PTR_TYPE output;
-    boost::threadpool::pool * tp;
+    ThreadPool * tp;
     bool all_epochs;
     std::unique_ptr<CostFunction> cost_function;
 public:
-    Evaluator(Ensemble * ensemble, INPUT_ROW_PIPELINE_PTR_TYPE input, EVALUATED_ROW_PIPELINE_PTR_TYPE output, boost::threadpool::pool * tp, bool all_epochs)
+    Evaluator(Ensemble * ensemble, INPUT_ROW_PIPELINE_PTR_TYPE input, EVALUATED_ROW_PIPELINE_PTR_TYPE output, ThreadPool * tp, bool all_epochs)
         : ensemble(ensemble),
         input(input),
         output(output),
@@ -192,30 +192,19 @@ public:
 
     void evaluate_all()
     {
-        std::thread broker([=]()
+        async_fill_pipeline(this->output, [=]()
         {
             std::unique_ptr<InputRow> input_row;
             while ((input_row = this->input->pop()) != nullptr) {
-                std::promise<std::unique_ptr<EvaluatedRow>> promise;
-                this->output->push(promise.get_future());
-
-                std::function<void()>function = make_copyable_function<void()>(
-                    [this, input_row= std::move(input_row), promise = std::move(promise)]() mutable {
-                    try {
-                        std::unique_ptr<EvaluatedRow> result = this->evaluate_ensemble(std::move(input_row));
-                        promise.set_value(std::move(result));
-                    }
-                    catch (...) {
-                        promise.set_exception(std::current_exception());
-                    }
-                });
-                this->tp->schedule(function);
+                this->output->push(tp->enqueue(true, make_copyable_function<std::unique_ptr<EvaluatedRow>()>(
+                    [this, input_row= std::move(input_row)]() mutable {
+                        return this->evaluate_ensemble(std::move(input_row));
+                })));
             }
             std::promise<std::unique_ptr<EvaluatedRow>> promise;
             this->output->push(promise.get_future());
             promise.set_value(nullptr);
         });
-        broker.detach();
     }
 private:     float_t evaluate_tree(const TreeLite & tree, const std::vector<FeatureValue> & values)
     {

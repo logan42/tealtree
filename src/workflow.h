@@ -33,7 +33,6 @@ class Workflow
 {
 private:
     Options & options;
-    std::unique_ptr<boost::threadpool::pool> thread_pool;
     std::unique_ptr<ThreadPool> thread_pool_2;
     std::unique_ptr<std::mt19937 > random_engine;
     std::unique_ptr<Trainer> trainer;
@@ -52,7 +51,7 @@ public:
 
     void run_train();
     void run_evaluate();
-    boost::threadpool::pool * get_thread_pool();
+    ThreadPool * get_thread_pool();
     uint32_t get_concurrency();
     uint32_t get_bbq_size();
     void log_gradient();

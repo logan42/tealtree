@@ -150,9 +150,9 @@ void Workflow::run_evaluate()
     }
 }
 
-boost::threadpool::pool * Workflow::get_thread_pool()
+ThreadPool * Workflow::get_thread_pool()
 {
-    return this->thread_pool.get();
+    return this->thread_pool_2.get();
 }
 
 // Boost maintainers move this class from one header to another too often.
@@ -223,7 +223,6 @@ void Workflow::init()
     this->init_logging();
     this->init_registries();
     uint32_t concurrency = this->get_concurrency();
-    this->thread_pool = std::unique_ptr<boost::threadpool::pool>(new boost::threadpool::pool(concurrency));
     this->thread_pool_2 = std::unique_ptr<ThreadPool>(new ThreadPool(concurrency));
     logger->info("Thread pool initialized with {} threads.", concurrency);
     if (this->options.random_seed == 0) {

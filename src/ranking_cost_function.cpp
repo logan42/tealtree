@@ -149,12 +149,14 @@ cf.compute_gradient_for_query(trainer_data, this->depth, i, newton_step);
     }
 
 template <typename T>
-void RankingCostFunction<T>::compute_gradient(TrainerData * trainer_data, bool newton_step, boost::threadpool::pool* tp)
+void RankingCostFunction<T>::compute_gradient(TrainerData * trainer_data, bool newton_step, ThreadPool * tp)
 {
     //boost::thread_specific_ptr<T> cf;
     thread_specific_ptr<T> cf;
+    std::vector<std::future<void>> futures;
+    futures.reserve(trainer_data->query_limits.size());
     for (size_t i = 0; i < trainer_data->query_limits.size() - 1; i++) {
-        tp->schedule(
+        futures.push_back(tp->enqueue(false, 
             [&cf, i, newton_step, this, trainer_data]() {
             T* this_cf = cf.get();
             if (this_cf == nullptr) {
@@ -162,9 +164,11 @@ void RankingCostFunction<T>::compute_gradient(TrainerData * trainer_data, bool n
                 cf.reset(this_cf);
             }
             this_cf->compute_gradient_for_query(trainer_data, this->depth, i, newton_step);
-        });
+        }));
     }
-    tp->wait();
+    for (size_t i = 0; i < futures.size(); i++) {
+        futures[i].get();
+    }
 }
 
 template class RankingCostFunction<LambdaRank>;

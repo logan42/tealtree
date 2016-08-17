@@ -9,8 +9,6 @@
 #include <stdio.h>
 
 
-#define MY_VALUES_RANGE_HEAP_TYPE boost::heap::d_ary_heap<const ValuesRange<T> *, boost::heap::mutable_<true>, boost::heap::arity<2>, boost::heap::compare<CompareValuesRanges<T>>>
-
 template <typename T>
 struct ValuesRange;
 

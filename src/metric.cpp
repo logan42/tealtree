@@ -1,7 +1,5 @@
 #include "metric.h"
 
-#include <boost/algorithm/string/predicate.hpp>
-
 std::unique_ptr<Metric> Metric::get_metric(const std::string & name)
 {
     if (name == "rmse") {
@@ -14,7 +12,7 @@ std::unique_ptr<Metric> Metric::get_metric(const std::string & name)
         return std::unique_ptr<Metric>(new NDCGMetric(0));
     }
     std::string ndcg_prefix = "ndcg@";
-    if (boost::starts_with(name, ndcg_prefix)) {
+    if (starts_with(name, ndcg_prefix)) {
         try {
         uint32_t depth = parse_string<uint32_t>(name.c_str() + ndcg_prefix.size());;
         return std::unique_ptr<Metric>(new NDCGMetric(depth));

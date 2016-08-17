@@ -1,7 +1,6 @@
 #ifndef util_hpp
 #define util_hpp
 
-#include <boost/lexical_cast.hpp>
 #include <memory>
 #include <stdexcept>
 #include <stdio.h>
@@ -271,6 +270,19 @@ inline std::string join(const std::vector<T> & vector, const std::string & delim
         oss << std::to_string(vector[i]);
     }
     return oss.str();
+}
+
+inline bool starts_with(const std::string & str, const std::string & prefix)
+{
+    if (prefix.size() > str.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < prefix.size(); i++) {
+        if (str[i] != prefix[i]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 #endif /* util_hpp */

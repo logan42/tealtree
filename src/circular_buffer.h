@@ -1,6 +1,7 @@
 #ifndef __tealtree__circular_buffer__
 #define __tealtree__circular_buffer__
 
+#include <cassert>
 #include <vector>
 
 template<class T>

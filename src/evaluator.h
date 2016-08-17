@@ -1,7 +1,6 @@
 #ifndef __tealtree__EVALUATOR__
 #define __tealtree__EVALUATOR__
 
-#include <boost/algorithm/string/join.hpp>
 #include <future>
 #include <stdio.h>
 #include <vector>

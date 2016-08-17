@@ -1,7 +1,6 @@
 #ifndef __tealtree__REGISTRY__
 #define __tealtree__REGISTRY__
 
-#include <boost/function.hpp>
 #include <map>
 #include <stdio.h>
 
@@ -19,7 +18,7 @@ T* registry_creator()
 template<class T>
 class Registry
 {
-    typedef boost::function0<T *> Creator;
+    typedef std::function<T*()> Creator;
     typedef std::map<std::string, Creator> Creators;
         Creators _creators;
 

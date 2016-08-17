@@ -1,7 +1,6 @@
 #ifndef __tealtree__trainer__
 #define __tealtree__trainer__
 
-#include <boost/dynamic_bitset.hpp>
 #include <stdio.h>
 #include <mutex>
 

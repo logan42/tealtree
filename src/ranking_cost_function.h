@@ -1,7 +1,6 @@
 #ifndef __tealtree__RANKING_cost_function__
 #define __tealtree__RANKING_cost_function__
 
-#include <boost/thread/tss.hpp>
 #include <stdio.h>
 #include <vector>
 

@@ -5,7 +5,6 @@
 #include "thread_specific_ptr.h"
 
 #include <algorithm>
-#include <boost/thread/tss.hpp>
 
 void LambdaRank::precompute(TrainerData * trainer_data, DOC_ID ndcg_at)
 {
@@ -151,7 +150,6 @@ cf.compute_gradient_for_query(trainer_data, this->depth, i, newton_step);
 template <typename T>
 void RankingCostFunction<T>::compute_gradient(TrainerData * trainer_data, bool newton_step, ThreadPool * tp)
 {
-    //boost::thread_specific_ptr<T> cf;
     thread_specific_ptr<T> cf;
     std::vector<std::future<void>> futures;
     futures.reserve(trainer_data->query_limits.size());

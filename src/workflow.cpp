@@ -10,14 +10,6 @@
 #include "util.h"
 #include "workflow.h"
 
-#include <boost/log/core.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/log/sinks/sync_frontend.hpp>
-#include <boost/log/sinks/text_ostream_backend.hpp>
-#include <boost/log/sources/logger.hpp>
-#include <boost/log/sources/record_ostream.hpp>
 #include <random>
 #include <thread>
 
@@ -155,18 +147,6 @@ ThreadPool * Workflow::get_thread_pool()
     return this->thread_pool_2.get();
 }
 
-// Boost maintainers move this class from one header to another too often.
-// We want to be compatible with multiple versions of boost, therefore we copy it here.
-struct null_deleter
-{
-    //! Function object result type
-    typedef void result_type;
-    /*!
-    * Does nothing
-    */
-    template< typename T >
-    void operator() (T*) const BOOST_NOEXCEPT {}
-};
 
 void Workflow::init_logging()
 {

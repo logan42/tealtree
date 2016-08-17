@@ -111,11 +111,10 @@ void Workflow::run_evaluate()
     std::shared_ptr<ColumnConsumerProvider> ccp(new ColumnConsumerProviderForEvaluation(input_pipe, ensemble.get(), this->options.exponentiate_label));
     std::unique_ptr<DataFileReader> tsv = this->get_tsv_reader(ccp, metric->is_query_based());
 
-    std::thread reader(
+    async_fill_pipeline(input_pipe,
          [tsv = std::move(tsv)]() mutable {
         tsv->read();
     });
-    reader.detach();
 
     std::unique_ptr<std::ostream> epochs;
     if (this->options.output_epochs.size() > 0) {

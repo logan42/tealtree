@@ -1,6 +1,7 @@
 # TealTree
 
-##Introduction
+## Introduction
+
 TealTree is a highly optimized implementation of a [gradient boosting decision tree](https://en.wikipedia.org/wiki/Gradient_boosting) (GBDT) algorithm.
 TealTree currently supports regression, binary classification and ranking (using LambdaMART) as training objectives.
 TealTree is faster than its competitors. 
